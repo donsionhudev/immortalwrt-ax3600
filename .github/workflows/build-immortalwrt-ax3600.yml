@@ -53,9 +53,6 @@ jobs:
           mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply \
           python3-docutils qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl \
           unzip vim wget xmlto xxd zlib1g-dev zstd
-        sudo pip3 install --upgrade cmake
-        sudo ln -sf /usr/local/bin/cmake /usr/bin/cmake || true
-        cmake --version
 
     - name: Clone Source Code
       run: |
@@ -69,6 +66,8 @@ jobs:
         [ -e $FEEDS_CONF ] && cp $FEEDS_CONF openwrt/feeds.conf.default
         chmod +x $DIY_P1_SH
         cd openwrt
+        echo "=== Current feeds.conf.default ==="
+        cat feeds.conf.default
         $GITHUB_WORKSPACE/$DIY_P1_SH
 
     - name: Update & Install Feeds
@@ -76,6 +75,12 @@ jobs:
         cd openwrt
         ./scripts/feeds update -a
         ./scripts/feeds install -a
+        echo "=== Verifying Python Version in Feeds (Must be 3.11 for 24.10) ==="
+        cat feeds/packages/lang/python/python3-version.mk
+        grep "PYTHON3_VERSION_MINOR:=11" feeds/packages/lang/python/python3-version.mk || {
+          echo "ERROR: Incorrect Python branch detected! Aborting to prevent failed build."
+          exit 1
+        }
 
     - name: Load Custom Configuration
       run: |
@@ -140,7 +145,7 @@ jobs:
           * **核心组件**：
             * `HomeProxy`（官方原生 sing-box 客户端，已集成 sing-box 核心）
             * `FRP 内网穿透`（客户端 frpc + 服务端 frps，含 LuCI 设置界面与完整中文）
-            * `Turbo ACC`（BBR + 硬件流表加速）
+            * `dnsmasq-full`（集成 nftset, ipset, dnssec）
             * `UPnP`（自动端口映射）
             * `ttyd`（网页终端命令行）
 
