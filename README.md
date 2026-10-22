@@ -9,9 +9,8 @@
 * **稳定基底**：基于官方 **ImmortalWrt 24.10**，采用 **Linux 6.6 LTS** 黄金稳定内核（拒绝 6.18 测试内核翻车）；
 * **大分区专属**：Target Profile 锁定为 `Xiaomi AX3600 (OpenWrt expand layout)`，完美适配 240MB 大分区，可用空间充足；
 * **满血硬件加速**：集成高通 **Qualcomm NSS 硬件转发加速驱动**，千兆/2.5G 跑满 CPU 几乎 0% 占用，低温不发热；
-* **最新 sing-box 客户端双全**：
-  * **HomeProxy**：ImmortalWrt 官方原生 sing-box 客户端，深度适配 firewall4 (nftables)，轻量极速；
-  * **PassWall**：老牌全能王，支持切换指定 `sing-box` 内核，支持 Hysteria 2、TUIC、Xray、Shadowsocks 等全协议；
+* **最新官方原生 sing-box 客户端**：
+  * **HomeProxy**：ImmortalWrt 官方原生 sing-box 客户端，深度适配 firewall4 (nftables)，轻量极速，内置完整 sing-box 核心；
 * **精心定制网络与系统**：
   * **默认后台 IP**：`192.168.3.1`
   * **默认登录账号**：`root`
