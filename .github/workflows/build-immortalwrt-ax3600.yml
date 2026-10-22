@@ -137,6 +137,7 @@ jobs:
           * **核心组件**：
             * `HomeProxy`（官方原生 sing-box 客户端）
             * `PassWall`（全协议多核心支持，已集成 sing-box / xray / hysteria2 / shadowsocks-rust）
+            * `FRP 内网穿透`（客户端 frpc + 服务端 frps，含 LuCI 设置界面与完整中文）
             * `Turbo ACC`（BBR + 硬件流表加速）
             * `UPnP`（自动端口映射）
             * `ttyd`（网页终端命令行）
