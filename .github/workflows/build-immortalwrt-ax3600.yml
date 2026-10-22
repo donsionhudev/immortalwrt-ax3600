@@ -150,9 +150,9 @@ jobs:
             * `ttyd`（网页终端命令行）
 
           > ⚠️ **刷机提示**：
-          > * 首次从不死 U-Boot 网页（`192.168.1.1`）刷入，请选择 **`*xiaomi_ax3600-squashfs-factory.ubi`**！
-          > * 之后在 OpenWrt 后台系统内升级，请选择 **`*xiaomi_ax3600-squashfs-sysupgrade.bin`**！
+          > * 首次从恩山不死 U-Boot 网页（`192.168.1.1`）刷入，请务必选择 **`*xiaomi_ax3600-stock-squashfs-factory.ubi`**！
+          > * 之后在 OpenWrt 后台系统内升级，请选择 **`*xiaomi_ax3600-stock-squashfs-sysupgrade.bin`**！
         files: |
-          ${{ env.FIRMWARE_PATH }}/*xiaomi_ax3600-squashfs-factory.ubi
-          ${{ env.FIRMWARE_PATH }}/*xiaomi_ax3600-squashfs-sysupgrade.bin
+          ${{ env.FIRMWARE_PATH }}/*xiaomi_ax3600*squashfs-factory.ubi
+          ${{ env.FIRMWARE_PATH }}/*xiaomi_ax3600*squashfs-sysupgrade.bin
           ${{ env.FIRMWARE_PATH }}/sha256sums
