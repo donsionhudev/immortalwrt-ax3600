@@ -20,3 +20,6 @@ sed -i 's/disabled=1/disabled=0/g' package/kernel/mac80211/files/lib/netifd/wire
 sed -i 's/root:::0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' package/base-files/files/etc/shadow 2>/dev/null || true
 # 上述设置密码默认为 password，或直接清空留空：
 sed -i 's/root:[^:]*:/root::/g' package/base-files/files/etc/shadow 2>/dev/null || true
+
+# 7. 彻底解决 CMake 3.31 版本过高报错 (将所有 CMakeLists.txt 最低版本要求统一放宽至 3.20)
+find package/ feeds/ -name "CMakeLists.txt" -exec sed -i -E 's/cmake_minimum_required\(VERSION [0-9.]+\)/cmake_minimum_required(VERSION 3.20)/g' {} + 2>/dev/null || true

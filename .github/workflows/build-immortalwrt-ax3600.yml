@@ -53,6 +53,9 @@ jobs:
           mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply \
           python3-docutils qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl \
           unzip vim wget xmlto xxd zlib1g-dev zstd
+        sudo pip3 install --upgrade cmake
+        sudo ln -sf /usr/local/bin/cmake /usr/bin/cmake || true
+        cmake --version
 
     - name: Clone Source Code
       run: |
