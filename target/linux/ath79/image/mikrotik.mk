@@ -1,16 +1,5 @@
 include ./common-mikrotik.mk
 
-define Device/mikrotik_routerboard-2011uias-2hnd
-  $(Device/mikrotik_nand)
-  SOC := ar9344
-  DEVICE_MODEL := RouterBOARD 2011UiAS-2HnD
-  DEVICE_PACKAGES += kmod-usb2 kmod-i2c-gpio kmod-sfp kmod-gpio-beeper
-  SUPPORTED_DEVICES += rb-2011l rb-2011il rb-2011ils \
-	rb-2011uas rb-2011uas-2hnd rb-2011uias \
-	rb-2011uias-2hnd rb-2011uias-2hnd-r2
-endef
-TARGET_DEVICES += mikrotik_routerboard-2011uias-2hnd
-
 define Device/mikrotik_routerboard-493g
   $(Device/mikrotik_nand)
   SOC := ar7161
@@ -24,7 +13,6 @@ define Device/mikrotik_routerboard-750-r2
   $(Device/mikrotik_nor)
   SOC := qca9533
   DEVICE_MODEL := RouterBOARD 750 r2 (hEX lite)
-  DEVICE_PACKAGES += -kmod-ath9k -wpad-openssl
   IMAGE_SIZE := 16256k
   SUPPORTED_DEVICES += rb-750-r2
 endef
@@ -95,11 +83,7 @@ define Device/mikrotik_routerboard-951g-2hnd
   $(Device/mikrotik_nand)
   SOC := ar9344
   DEVICE_MODEL := RouterBOARD 951G-2HnD
-  DEVICE_PACKAGES += kmod-usb-ohci kmod-usb2 kmod-dsa-qca8k \
-	-swconfig -kmod-switch-ar8xxx
-  DEVICE_COMPAT_MESSAGE := \
-       Switched to DSA. Cannot preserve the network config.
-  DEVICE_COMPAT_VERSION := 2.0
+  DEVICE_PACKAGES += kmod-usb-ohci kmod-usb2
   SUPPORTED_DEVICES += rb-951g-2hnd
 endef
 TARGET_DEVICES += mikrotik_routerboard-951g-2hnd
@@ -132,27 +116,13 @@ define Device/mikrotik_routerboard-952ui-5ac2nd
 endef
 TARGET_DEVICES += mikrotik_routerboard-952ui-5ac2nd
 
-define Device/mikrotik_routerboard-960pgs
-  $(Device/mikrotik_nor)
-  SOC := qca9557
-  DEVICE_MODEL := RouterBOARD 960PGS (hEX PoE/PowerBox Pro)
-  IMAGE_SIZE := 16256k
-  DEVICE_PACKAGES += kmod-usb2 kmod-i2c-gpio kmod-sfp kmod-dsa-qca8k -swconfig \
-	-kmod-switch-ar8xxx -iwinfo -kmod-ath9k -wpad-openssl
-endef
-TARGET_DEVICES += mikrotik_routerboard-960pgs
-
 define Device/mikrotik_routerboard-962uigs-5hact2hnt
   $(Device/mikrotik_nor)
   SOC := qca9558
   DEVICE_MODEL := RouterBOARD 962UiGS-5HacT2HnT (hAP ac)
   DEVICE_PACKAGES += kmod-ath10k-ct ath10k-firmware-qca988x-ct kmod-usb2 \
-	kmod-i2c-gpio kmod-sfp kmod-dsa-qca8k \
-	-swconfig -kmod-switch-ar8xxx
+	kmod-i2c-gpio kmod-sfp
   IMAGE_SIZE := 16256k
-  DEVICE_COMPAT_MESSAGE := \
-       Switched to DSA. Cannot preserve the network config.
-  DEVICE_COMPAT_VERSION := 2.0
   SUPPORTED_DEVICES += rb-962uigs-5hact2hnt
 endef
 TARGET_DEVICES += mikrotik_routerboard-962uigs-5hact2hnt

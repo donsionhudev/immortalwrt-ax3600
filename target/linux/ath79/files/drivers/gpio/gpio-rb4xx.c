@@ -17,7 +17,7 @@
 #include <linux/platform_device.h>
 #include <linux/gpio/driver.h>
 #include <linux/module.h>
-#include <linux/version.h>
+#include <linux/of_device.h>
 
 #include <mfd/rb4xx-cpld.h>
 
@@ -54,8 +54,6 @@ static int rb4xx_gpio_cpld_set(struct rb4xx_gpio *gpio, unsigned int offset,
 		ret = cpld->gpio_set_0_7(cpld, values & 0xff);
 	} else if (offset == 8) {
 		ret = cpld->gpio_set_8(cpld, values >> 8);
-	} else {
-		ret = -EINVAL;
 	}
 
 	if(likely(!ret))
@@ -68,7 +66,7 @@ unlock:
 
 static int rb4xx_gpio_get_direction(struct gpio_chip *chip, unsigned int offset)
 {
-	return GPIO_LINE_DIRECTION_OUT;
+	return 0; /* All 9 GPIOs are out */
 }
 
 static int rb4xx_gpio_direction_input(struct gpio_chip *chip,
@@ -95,20 +93,11 @@ static int rb4xx_gpio_get(struct gpio_chip *chip, unsigned int offset)
 	return ret;
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,17,0)
-static int rb4xx_gpio_set(struct gpio_chip *chip, unsigned int offset,
-			   int value)
-{
-	return rb4xx_gpio_cpld_set(gpiochip_get_data(chip), offset, value);
-}
-#else
-static void
-rb4xx_gpio_set(struct gpio_chip *chip, unsigned int offset,
+static void rb4xx_gpio_set(struct gpio_chip *chip, unsigned int offset,
 			   int value)
 {
 	rb4xx_gpio_cpld_set(gpiochip_get_data(chip), offset, value);
 }
-#endif
 
 static int rb4xx_gpio_probe(struct platform_device *pdev)
 {
@@ -130,7 +119,7 @@ static int rb4xx_gpio_probe(struct platform_device *pdev)
 	gpio->dev	= dev;
 	gpio->values	= 0;
 
-	err = devm_mutex_init(dev, &gpio->lock);
+	err = devm_mutex_init(&pdev->dev, &gpio->lock);
 	if (err)
 		return err;
 
@@ -146,14 +135,21 @@ static int rb4xx_gpio_probe(struct platform_device *pdev)
 	gpio->chip.base			= -1;
 	gpio->chip.can_sleep		= 1;
 
-	if (!device_property_read_u32(dev, "base", &val))
+	if (!of_property_read_u32(dev->of_node, "base", &val))
 		gpio->chip.base = val;
 
-	return devm_gpiochip_add_data(dev, &gpio->chip, gpio);
+	return devm_gpiochip_add_data(&pdev->dev, &gpio->chip, gpio);
 }
+
+static const struct platform_device_id rb4xx_gpio_id_table[] = {
+	{ "mikrotik,rb4xx-gpio", },
+	{ },
+};
+MODULE_DEVICE_TABLE(platform, rb4xx_gpio_id_table);
 
 static struct platform_driver rb4xx_gpio_driver = {
 	.probe = rb4xx_gpio_probe,
+	.id_table = rb4xx_gpio_id_table,
 	.driver = {
 		.name = "rb4xx-gpio",
 	},

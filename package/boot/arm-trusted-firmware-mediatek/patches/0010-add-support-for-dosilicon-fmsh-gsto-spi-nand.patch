@@ -10,7 +10,7 @@ Signed-off-by: Tianling Shen <cnsztl@immortalwrt.org>
 
 --- a/plat/mediatek/apsoc_common/drivers/spi_nand/mtk_spi_nand.c
 +++ b/plat/mediatek/apsoc_common/drivers/spi_nand/mtk_spi_nand.c
-@@ -20,8 +20,11 @@
+@@ -19,8 +19,11 @@
  
  #define SPI_NAND_MAX_ID_LEN		4U
  #define DELAY_US_400MS			400000U
@@ -22,7 +22,7 @@ Signed-off-by: Tianling Shen <cnsztl@immortalwrt.org>
  #define MACRONIX_ID			0xC2U
  #define MICRON_ID			0x2CU
  #define TOSHIBA_ID			0x98U
-@@ -145,7 +148,10 @@ static int spi_nand_quad_enable(uint8_t
+@@ -129,7 +132,10 @@ static int spi_nand_quad_enable(uint8_t
  
  	if (manufacturer_id != MACRONIX_ID &&
  	    manufacturer_id != GIGADEVICE_ID &&
@@ -33,7 +33,7 @@ Signed-off-by: Tianling Shen <cnsztl@immortalwrt.org>
  	    manufacturer_id != FORESEE_ID) {
  		return 0;
  	}
-@@ -543,6 +549,10 @@ static int spi_nand_check_pp(struct para
+@@ -364,6 +370,10 @@ static int spi_nand_check_pp(struct para
  		INFO("PP COPY %d CRC read: 0x%x, compute: 0x%x\n",
  		     i, crc, crc_compute);
  
@@ -44,18 +44,18 @@ Signed-off-by: Tianling Shen <cnsztl@immortalwrt.org>
  		if (crc != crc_compute) {
  			ret = -EBADMSG;
  			continue;
-@@ -634,8 +644,9 @@ restore:
- 	return valid ? valid: 0;
+@@ -400,8 +410,9 @@ static int spi_nand_check_pp(struct para
+ 	return ret;
  }
  
 -static int spi_nand_read_pp(struct parameter_page *pp, uint8_t *sel)
 +static int spi_nand_read_pp(uint8_t *id, struct parameter_page *pp, uint8_t *sel)
  {
 +	const bool is_dosilicon = (id[1] == DOSILICON_ID);
- 	uint8_t pp_offset[3] = {0x0, 0x1, 0x4};
- 	int valid = -EINVAL;
- 	int ret, last_ret;
-@@ -648,7 +659,7 @@ static int spi_nand_read_pp(struct param
+ 	uint8_t status;
+ 	uint8_t cfg_reg;
+ 	int ret, op_ret;
+@@ -413,7 +424,7 @@ static int spi_nand_read_pp(struct param
  		return ret;
  	}
  
@@ -64,39 +64,32 @@ Signed-off-by: Tianling Shen <cnsztl@immortalwrt.org>
  	if (ret != 0) {
  		return ret;
  	}
-@@ -677,7 +688,7 @@ static int spi_nand_read_pp(struct param
+@@ -449,7 +460,7 @@ out:
+ 		ERROR("Parameter page read failed\n");
  	}
  
- restore:
--	last_ret = spi_nand_write_reg(SPI_NAND_REG_CFG, cfg_reg);
-+	last_ret = spi_nand_write_reg(SPI_NAND_REG_CFG, is_dosilicon ? 0x10 : cfg_reg);
- 	if (last_ret) {
- 		return last_ret;
+-	ret = spi_nand_write_reg(SPI_NAND_REG_CFG, cfg_reg);
++	ret = spi_nand_write_reg(SPI_NAND_REG_CFG, is_dosilicon ? 0x10 : cfg_reg);
+ 	if (ret != 0) {
+ 		return ret;
  	}
-@@ -909,9 +920,13 @@ int spi_nand_init(unsigned long long *si
- 	goto success;
+@@ -589,12 +600,15 @@ int spi_nand_init(unsigned long long *si
+ 		return ret;
+ 	}
  
- fallback_pp:
+-	ret = spi_nand_read_pp(pp, &sel);
 +	ret = spi_nand_read_id(id);
-+	if (ret) {
++	if (ret != 0) {
++		ERROR("SPI_NAND Read ID failed.\n");
 +		return ret;
 +	}
- 	sel = 0;
- 	pp = (struct parameter_page *)buf;
--	ret = spi_nand_read_pp(pp, &sel);
++
 +	ret = spi_nand_read_pp(id, pp, &sel);
- 	if (ret) {
- 		goto fallback_id;
- 	}
-@@ -920,11 +935,6 @@ fallback_pp:
- 	goto success;
- 
- fallback_id:
--	ret = spi_nand_read_id(id);
--	if (ret) {
--		return ret;
--	}
--
- 	ret = spi_nand_set_data_via_id(&spinand_dev, id, &vendor_id);
- 	if (ret)
- 		return ret;
+ 	if (ret != 0) {
+ 		ERROR("Parameter page read fail, fallback to read ID.\n");
+-		ret = spi_nand_read_id(id);
+-		if (ret != 0)
+-			return ret;
+ 		spi_nand_set_data_via_id(&spinand_dev, id, &vendor_id);
+ 	} else {
+ 		vendor_id = pp[sel].manufactuere_id;

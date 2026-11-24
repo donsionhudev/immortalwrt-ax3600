@@ -23,6 +23,7 @@
 
 	gpio-export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		m2-enable {
 			gpio-export,name = "m2-enable";

@@ -97,6 +97,9 @@
 		m25p,fast-read;
 		reg = <0>;
 
+		#address-cells = <1>;
+		#size-cells = <1>;
+
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
@@ -416,7 +419,7 @@
 			reg = <4>;
 			label = "extsw";
 
-			phy-mode = "rgmii-id";
+			phy-mode = "rgmii";
 
 			fixed-link {
 				speed = <1000>;

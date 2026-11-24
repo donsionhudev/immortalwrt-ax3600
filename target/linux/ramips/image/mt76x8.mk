@@ -5,24 +5,6 @@
 include ./common-tp-link.mk
 
 DEFAULT_SOC := mt7628an
-DEVICE_VARS += SUPPORTED_TELTONIKA_DEVICES
-DEVICE_VARS += SUPPORTED_TELTONIKA_HW_MODS
-
-define Build/creality_wb-01-factory
-	mv $@ $(dir $@)factory.bin
-	$(eval kernel_size=851968)
-	( \
-		echo '#!/bin/sh'; \
-		echo '[ -z "$$2" ] && file="factory.bin" || file="$$2/factory.bin"'; \
-		echo 'file_size=$$(wc -c < $$file)'; \
-		echo 'rootfs_size=$$((file_size - $(kernel_size)))'; \
-		echo 'mtd_write -o 0 -l $(kernel_size) write $$file Kernel'; \
-		echo 'mtd_write -r -o $(kernel_size) -l $$rootfs_size write $$file RootFS'; \
-	) > $(dir $@)install.sh
-	$(TAR) -cjf $@ -C $(dir $@) --numeric-owner --owner=0 --group=0 --mode=go-w \
-		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
-		factory.bin install.sh
-endef
 
 define Build/elecom-header
 	$(eval model_id=$(1))
@@ -51,6 +33,7 @@ define Build/ravpower-wd009-factory
 	cat $@ >> $@.new
 	@mv $@.new $@
 endef
+
 
 define Device/7links_wlr-12xx
   IMAGE_SIZE := 7872k
@@ -190,51 +173,6 @@ define Device/comfast_cf-wr758ac-v2
 endef
 TARGET_DEVICES += comfast_cf-wr758ac-v2
 
-define Device/creality_wb-01
-  IMAGE_SIZE := 16064k
-  IMAGES += cxsw_update.tar.bz2
-  IMAGE/cxsw_update.tar.bz2 := $$(sysupgrade_bin) | creality_wb-01-factory
-  DEVICE_VENDOR := Creality
-  DEVICE_MODEL := WB-01
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-sdhci-mt7620
-  SUPPORTED_DEVICES += creality_wb-01
-endef
-TARGET_DEVICES += creality_wb-01
-
-define Device/cudy_lt300-v3
-  IMAGE_SIZE := 15872k
-  DEVICE_VENDOR := Cudy
-  DEVICE_MODEL := LT300
-  DEVICE_VARIANT := v3
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-net-rndis \
-	kmod-usb-serial-option
-  SUPPORTED_DEVICES += R100
-endef
-TARGET_DEVICES += cudy_lt300-v3
-
-define Device/cudy_lt400e-v1
-  IMAGE_SIZE := 7808k
-  DEVICE_VENDOR := Cudy
-  DEVICE_MODEL := LT400E
-  DEVICE_VARIANT := v1
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-net-cdc-ether \
-  kmod-usb-serial-option
-  SUPPORTED_DEVICES += cudy,lt400e
-endef
-TARGET_DEVICES += cudy_lt400e-v1
-
-define Device/cudy_lt500-outdoor-v1
-  IMAGE_SIZE := 15872k
-  DEVICE_VENDOR := Cudy
-  DEVICE_MODEL := LT500 Outdoor
-  DEVICE_VARIANT := v1
-  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7663-firmware-ap kmod-usb2 \
-	kmod-usb-ohci kmod-usb-net-cdc-ether kmod-usb-serial-option
-  UIMAGE_NAME := R35
-  SUPPORTED_DEVICES += R35
-endef
-TARGET_DEVICES += cudy_lt500-outdoor-v1
-
 define Device/cudy_m1200-v1
   IMAGE_SIZE := 15872k
   DEVICE_VENDOR := Cudy
@@ -267,15 +205,6 @@ define Device/cudy_tr1200-v1
   SUPPORTED_DEVICES += R46
 endef
 TARGET_DEVICES += cudy_tr1200-v1
-
-define Device/cudy_wr300-v1
-  IMAGE_SIZE := 7808k
-  DEVICE_VENDOR := Cudy
-  DEVICE_MODEL := WR300
-  DEVICE_VARIANT := v1
-  SUPPORTED_DEVICES += cudy,wr300
-endef
-TARGET_DEVICES += cudy_wr300-v1
 
 define Device/cudy_wr1000
   IMAGE_SIZE := 7872k
@@ -482,54 +411,8 @@ define Device/jotale_js76x8-32m
 endef
 TARGET_DEVICES += jotale_js76x8-32m
 
-define Device/keenetic_kn-1112
-  BLOCKSIZE := 64k
-  IMAGE_SIZE := 16121856
-  DEVICE_VENDOR := Keenetic
-  DEVICE_MODEL := KN-1112
-  IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to $$$$(BLOCKSIZE) | \
-	check-size | zyimage -d 0x801112 -v "KN-1112"
-endef
-TARGET_DEVICES += keenetic_kn-1112
-
-define Device/keenetic_kn-1212
-  BLOCKSIZE := 64k
-  IMAGE_SIZE := 15073280
-  DEVICE_VENDOR := Keenetic
-  DEVICE_MODEL := KN-1212
-  DEVICE_PACKAGES := kmod-usb2
-  IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to $$$$(BLOCKSIZE) | \
-	check-size | zyimage -d 0x801212 -v "KN-1212"
-endef
-TARGET_DEVICES += keenetic_kn-1212
-
-define Device/keenetic_kn-1221
-  BLOCKSIZE := 64k
-  IMAGE_SIZE := 29440k
-  DEVICE_VENDOR := Keenetic
-  DEVICE_MODEL := KN-1221
-  DEVICE_PACKAGES := kmod-usb2
-  IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to $$$$(BLOCKSIZE) | \
-	check-size 14720k | zyimage -d 0x801221 -v "KN-1221"
-endef
-TARGET_DEVICES += keenetic_kn-1221
-
-define Device/keenetic_kn-1510
-  IMAGE_SIZE := 15488k
-  DEVICE_VENDOR := Keenetic
-  DEVICE_MODEL := KN-1510
-  DEVICE_PACKAGES := kmod-mt76x0e
-  IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to $$$$(BLOCKSIZE) | \
-	check-size | zyimage -d 0x801510 -v "KN-1510"
-endef
-TARGET_DEVICES += keenetic_kn-1510
-
 define Device/keenetic_kn-1613
-  IMAGE_SIZE := 15073280
+  IMAGE_SIZE := 31488k
   DEVICE_VENDOR := Keenetic
   DEVICE_MODEL := KN-1613
   DEVICE_PACKAGES := kmod-mt7615e kmod-mt7663-firmware-ap
@@ -538,40 +421,6 @@ define Device/keenetic_kn-1613
 	check-size | zyimage -d 0x801613 -v "KN-1613"
 endef
 TARGET_DEVICES += keenetic_kn-1613
-
-define Device/keenetic_kn-1711
-  BLOCKSIZE := 64k
-  IMAGE_SIZE := 15073280
-  DEVICE_VENDOR := Keenetic
-  DEVICE_MODEL := KN-1711
-  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7663-firmware-ap kmod-usb2
-  IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to $$$$(BLOCKSIZE) | \
-	check-size | zyimage -d 0x801711 -v "KN-1711"
-endef
-TARGET_DEVICES += keenetic_kn-1711
-
-define Device/keenetic_kn-1713
-  BLOCKSIZE := 64k
-  IMAGE_SIZE := 15073280
-  DEVICE_VENDOR := Keenetic
-  DEVICE_MODEL := KN-1713
-  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7663-firmware-ap kmod-usb2
-  IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to $$$$(BLOCKSIZE) | \
-	check-size | zyimage -d 0x801713 -v "KN-1713"
-endef
-TARGET_DEVICES += keenetic_kn-1713
-
-define Device/keenetic_kn-3211
-  IMAGE_SIZE := 31488k
-  DEVICE_VENDOR := Keenetic
-  DEVICE_MODEL := KN-3211
-  IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to $$$$(BLOCKSIZE) | \
-	check-size | zyimage -d 0x803211 -v "KN-3211"
-endef
-TARGET_DEVICES += keenetic_kn-3211
 
 define Device/kroks_kndrt31r16
   IMAGE_SIZE := 16064k
@@ -638,20 +487,6 @@ define Device/mercury_mac1200r-v2
 endef
 TARGET_DEVICES += mercury_mac1200r-v2
 
-define Device/mercusys_mb130-4g-v1
-$(Device/tplink-v2)
-  IMAGE_SIZE := 14912k
-  DEVICE_VENDOR := MERCUSYS
-  DEVICE_MODEL := MB130-4G
-  DEVICE_VARIANT := v1
-  DEVICE_PACKAGES := kmod-mt76x0e kmod-usb2 kmod-mt7663-firmware-ap kmod-mt7615e \
-                     kmod-usb-serial-option kmod-usb-net-cdc-ether
-  TPLINK_FLASHLAYOUT := 16MLmtk
-  IMAGES := sysupgrade.bin tftp-recovery.bin
-  IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
-endef
-TARGET_DEVICES += mercusys_mb130-4g-v1
-
 define Device/minew_g1-c
   IMAGE_SIZE := 15744k
   DEVICE_VENDOR := Minew
@@ -668,15 +503,6 @@ define Device/motorola_mwr03
   DEVICE_PACKAGES := kmod-mt76x2
 endef
 TARGET_DEVICES += motorola_mwr03
-
-define Device/movingcomm_c120ev
-  IMAGE_SIZE := 16064k
-  DEVICE_VENDOR := MovingComm
-  DEVICE_MODEL := C120EV
-  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7663-firmware-ap kmod-usb2 kmod-usb-ohci kmod-usb-net-cdc-ether kmod-usb-serial-option
-  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
-endef
-TARGET_DEVICES += movingcomm_c120ev
 
 define Device/netgear_r6020
   $(Device/netgear_sercomm_nor)
@@ -747,8 +573,7 @@ define Device/qding_qc202
   IMAGE_SIZE := 7872k
   DEVICE_VENDOR := Qding
   DEVICE_MODEL := QC202
-  DEVICE_PACKAGES := kmod-i2c-mt7628 kmod-gpio-beeper kmod-input-matrix-keypad kmod-input-evdev \
-	input-support uboot-envtools
+  DEVICE_PACKAGES := kmod-i2c-mt7628 kmod-gpio-beeper kmod-input-matrix-keypad kmod-input-evdev uboot-envtools
   IMAGES += factory.bin
   IMAGE/factory.bin := $$(sysupgrade_bin) | qding-header qc202
 endef
@@ -789,61 +614,6 @@ define Device/tama_w06
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci
 endef
 TARGET_DEVICES += tama_w06
-
-define Device/teltonika_rut9x1
-  DEVICE_VENDOR := Teltonika
-  DEVICE_MODEL := RUT951
-  DEVICE_ALT0_VENDOR := Teltonika
-  DEVICE_ALT0_MODEL := RUT901
-  SUPPORTED_TELTONIKA_DEVICES := teltonika,rut9m
-  SUPPORTED_TELTONIKA_HW_MODS := 2c7c_6005 TLA2021 CH343 esim ala440
-  IMAGE_SIZE := 15424k
-  BLOCKSIZE := 64k
-  DEVICE_PACKAGES := uqmi kmod-mt76x2 kmod-usb2 kmod-usb-ohci \
-	kmod-usb-serial-option kmod-spi-gpio kmod-gpio-nxp-74hc164 \
-	kmod-i2c-mt7628 kmod-usb-net-cdc-ether
-  IMAGES += factory.bin
-  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
-	append-rootfs | pad-rootfs | check-size | append-teltonika-metadata
-  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
-endef
-TARGET_DEVICES += teltonika_rut9x1
-
-define Device/teltonika_rut9x6
-  DEVICE_VENDOR := Teltonika
-  DEVICE_MODEL := RUT956
-  DEVICE_ALT0_VENDOR := Teltonika
-  DEVICE_ALT0_MODEL := RUT906
-  SUPPORTED_TELTONIKA_DEVICES := teltonika,rut9m
-  SUPPORTED_TELTONIKA_HW_MODS := 2c7c_6005 TLA2021 CH343 esim ala440
-  IMAGE_SIZE := 15424k
-  BLOCKSIZE := 64k
-  DEVICE_PACKAGES := uqmi kmod-mt76x2 kmod-usb2 kmod-usb-ohci \
-	kmod-usb-serial-option kmod-spi-gpio kmod-gpio-nxp-74hc164 kmod-i2c-mt7628 \
-	kmod-hwmon-mcp3021 kmod-scsi-core kmod-usb-storage kmod-usb-acm kmod-usb-net-cdc-ether
-  IMAGES += factory.bin
-  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
-	append-rootfs | pad-rootfs | check-size | append-teltonika-metadata
-  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
-endef
-TARGET_DEVICES += teltonika_rut9x6
-
-define Device/teltonika_rut976
-  DEVICE_VENDOR := Teltonika
-  DEVICE_MODEL := RUT976
-  SUPPORTED_TELTONIKA_DEVICES := teltonika,rut976
-  SUPPORTED_TELTONIKA_HW_MODS := 2c7c_6005 TLA2021 CH343 esim ala440
-  IMAGE_SIZE := 31552k
-  BLOCKSIZE := 64k
-  DEVICE_PACKAGES := uqmi kmod-mt76x2 kmod-usb2 kmod-usb-ohci \
-	kmod-usb-serial-option kmod-spi-gpio kmod-gpio-nxp-74hc164 kmod-i2c-mt7628 \
-	kmod-hwmon-mcp3021 kmod-scsi-core kmod-usb-storage kmod-usb-acm kmod-usb-net-cdc-ether
-  IMAGES += factory.bin
-  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
-	append-rootfs | pad-rootfs | check-size | append-teltonika-metadata
-  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
-endef
-TARGET_DEVICES += teltonika_rut976
 
 define Device/totolink_a3
   IMAGE_SIZE := 7936k
@@ -928,8 +698,6 @@ define Device/tplink_archer-c50-v6
   IMAGE_SIZE := 7616k
   DEVICE_MODEL := Archer C50
   DEVICE_VARIANT := v6 (CA/EU/RU)
-  DEVICE_ALT0_MODEL := Archer A5
-  DEVICE_ALT0_VARIANT := v6 (CA/EU/RU)
   TPLINK_FLASHLAYOUT := 8MSUmtk
   TPLINK_HWID := 0x0C500006
   TPLINK_HWREVADD := 0x6
@@ -953,23 +721,6 @@ define Device/tplink_archer-mr200-v5
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
 endef
 TARGET_DEVICES += tplink_archer-mr200-v5
-
-define Device/tplink_archer-mr200-v6
-  $(Device/tplink-v2)
-  IMAGE_SIZE := 15936k
-  DEVICE_MODEL := Archer MR200
-  DEVICE_VARIANT := v6
-  TPLINK_FLASHLAYOUT := 16Mmtk
-  TPLINK_HWID := 0x20000006
-  TPLINK_HWREV := 0x6
-  TPLINK_HWREVADD := 0x6
-  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7663-firmware-ap \
-	kmod-usb2 kmod-usb-serial-option uqmi
-  KERNEL := kernel-bin | append-dtb | lzma -d22
-  KERNEL_INITRAMFS := kernel-bin | append-dtb
-  IMAGES := sysupgrade.bin
-endef
-TARGET_DEVICES += tplink_archer-mr200-v6
 
 define Device/tplink_re200-v2
   $(Device/tplink-safeloader)
@@ -1023,16 +774,10 @@ TARGET_DEVICES += tplink_re220-v2
 
 define Device/tplink_re305-v1
   $(Device/tplink-safeloader)
-  IMAGE_SIZE := 7680k
-  KERNEL_SIZE := 6016k
+  IMAGE_SIZE := 6016k
   DEVICE_MODEL := RE305
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := kmod-mt76x2
-  DEVICE_COMPAT_VERSION := 2.0
-  DEVICE_COMPAT_MESSAGE := Partition design has changed compared to older versions due to size restrictions and unsused flash. \
-	Upgrade via sysupgrade mechanism is not possible, so new installation via TFTP is required.
-  IMAGES := sysupgrade.bin
-  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | check-size | append-metadata
   TPLINK_BOARD_ID := RE305-V1
 endef
 TARGET_DEVICES += tplink_re305-v1
@@ -1120,22 +865,6 @@ define Device/tplink_tl-mr6400-v5
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
 endef
 TARGET_DEVICES += tplink_tl-mr6400-v5
-
-define Device/tplink_tl-mr6400-v7
-  $(Device/tplink-v2)
-  IMAGE_SIZE := 15872k
-  DEVICE_MODEL := TL-MR6400
-  DEVICE_VARIANT := v7
-  TPLINK_FLASHLAYOUT := 16Mmtk
-  TPLINK_HWID := 0x64000007
-  TPLINK_HWREV := 0x7
-  TPLINK_HWREVADD := 0x7
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport \
-	kmod-usb-serial-option kmod-usb-net-qmi-wwan uqmi
-  IMAGES := sysupgrade.bin tftp-recovery.bin
-  IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
-endef
-TARGET_DEVICES += tplink_tl-mr6400-v7
 
 define Device/tplink_tl-wa801nd-v5
   $(Device/tplink-v2)
@@ -1330,14 +1059,6 @@ define Device/wavlink_wl-wn570ha1
 endef
 TARGET_DEVICES += wavlink_wl-wn570ha1
 
-define Device/wavlink_wl-wn570ha2
-  IMAGE_SIZE := 15488k
-  DEVICE_VENDOR := Wavlink
-  DEVICE_MODEL := WL-WN570HA2
-  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7663-firmware-ap kmod-mt7603
-endef
-TARGET_DEVICES += wavlink_wl-wn570ha2
-
 define Device/wavlink_wl-wn575a3
   IMAGE_SIZE := 7872k
   DEVICE_VENDOR := Wavlink
@@ -1403,15 +1124,6 @@ define Device/wiznet_wizfi630s
   SUPPORTED_DEVICES += wizfi630s
 endef
 TARGET_DEVICES += wiznet_wizfi630s
-
-define Device/wodesys_wd-r1208u
-  IMAGE_SIZE := 7872k
-  DEVICE_VENDOR := Wodesys
-  DEVICE_MODEL := WD-R1208U
-  DEVICE_PACKAGES := kmod-mt76x2
-  SUPPORTED_DEVICES += mtk-apsoc-demo
-endef
-TARGET_DEVICES += wodesys_wd-r1208u
 
 define Device/wrtnode_wrtnode2p
   IMAGE_SIZE := 32448k
@@ -1496,7 +1208,7 @@ TARGET_DEVICES += xiaomi_miwifi-nano
 define Device/xiaomi_mi-ra75
   IMAGE_SIZE := 14976k
   DEVICE_VENDOR := Xiaomi
-  DEVICE_MODEL := MiWiFi Range Extender AC1200
+  DEVICE_MODEL := MiWiFi Range Extender AC1200 
   DEVICE_VARIANT := RA75
   DEVICE_PACKAGES := kmod-mt76x2
   SUPPORTED_DEVICES += xiaomi,mira75
@@ -1544,42 +1256,3 @@ define Device/zyxel_keenetic-extra-ii
 	check-size | zyimage -d 6162 -v "ZyXEL Keenetic Extra II"
 endef
 TARGET_DEVICES += zyxel_keenetic-extra-ii
-
-define Device/teltonika_rut200
-  DEVICE_VENDOR := Teltonika
-  DEVICE_MODEL := RUT200
-  DEVICE_VARIANT := v1-v4
-  SUPPORTED_TELTONIKA_DEVICES := teltonika,rut2m
-  IMAGE_SIZE := 15424k
-  BLOCKSIZE := 64k
-  DEVICE_PACKAGES +=kmod-mt76x2 kmod-usb2 kmod-usb-ohci kmod-usb-serial-option kmod-usb-net-cdc-ether
-  IMAGES += factory.bin
-  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-teltonika-metadata
-  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
-endef
-TARGET_DEVICES += teltonika_rut200
-
-define Device/teltonika_rut241
-  DEVICE_VENDOR := Teltonika
-  DEVICE_MODEL := RUT241
-  DEVICE_VARIANT := v1-v4
-  SUPPORTED_TELTONIKA_DEVICES := teltonika,rut2m
-  IMAGE_SIZE := 15424k
-  BLOCKSIZE := 64k
-  DEVICE_PACKAGES += uqmi kmod-mt76x2 kmod-usb2 kmod-usb-ohci kmod-usb-serial-option
-  IMAGES += factory.bin
-  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-teltonika-metadata
-  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
-endef
-TARGET_DEVICES += teltonika_rut241
-
-define Device/yuncore_1200f
-  IMAGE_SIZE := 7872k
-  DEVICE_VENDOR := Yuncore
-  DEVICE_MODEL := 1200F
-  DEVICE_ALT0_VENDOR := KuWFi
-  DEVICE_ALT0_MODEL := AP1200F
-  SUPPORTED_DEVICES += yuncore,1200f
-  DEVICE_PACKAGES := kmod-mt7615e kmod-mt7663-firmware-ap -kmod-mt76x2 -kmod-mt76x2-common -kmod-mt76x02-common
-endef
-TARGET_DEVICES += yuncore_1200f

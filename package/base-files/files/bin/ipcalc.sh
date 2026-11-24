@@ -2,6 +2,8 @@
 
 . /lib/functions/ipv4.sh
 
+PROG="$(basename "$0")"
+
 # wrapper to convert an integer to an address, unless we're using
 # decimal output format.
 # hook for library function
@@ -19,7 +21,7 @@ _ip2str() {
 }
 
 usage() {
-    echo "Usage: ${0##*/} [ -d | -x ] address/prefix [ start limit ]" >&2
+    echo "Usage: $PROG [ -d | -x ] address/prefix [ start limit ]" >&2
     exit 1
 }
 
@@ -131,7 +133,8 @@ _ip2str START "$start"
 _ip2str END "$end"
 
 if [ "$start" -le "$ipaddr" ] && [ "$ipaddr" -le "$end" ]; then
-    echo "warning: address $IP inside range $START..$END" >&2
+    echo "error: address $IP inside range $START..$END" >&2
+    exit 1
 fi
 
 echo "START=$START"

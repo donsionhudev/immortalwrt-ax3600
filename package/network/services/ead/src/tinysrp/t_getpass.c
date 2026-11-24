@@ -44,7 +44,7 @@ static  struct  sigaction sigact;
 #endif
 
 /*ARGSUSED*/
-static void
+static RETSIGTYPE
 sig_catch (sig)
 int     sig;
 {

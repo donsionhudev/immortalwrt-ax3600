@@ -11,7 +11,7 @@ FEATURES:=dt squashfs gpio ext4 rootfs-part
 CPU_TYPE:=xscale
 SUBTARGETS:=generic
 
-KERNEL_PATCHVER:=6.18
+KERNEL_PATCHVER:=6.6
 
 define Target/Description
 	Build firmware images for the IXP4xx XScale CPU
@@ -24,7 +24,6 @@ include $(INCLUDE_DIR)/target.mk
 DEFAULT_PACKAGES += fconfig \
 	kmod-crypto-hw-ixp4xx \
 	kmod-usb-ledtrig-usbport \
-	kmod-leds-gpio \
-	kmod-input-gpio-keys
+	kmod-leds-gpio
 
 $(eval $(call BuildTarget))

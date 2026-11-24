@@ -69,16 +69,6 @@
 
 &pcie0 {
 	status = "okay";
-
-	wifi@11,0 { /* 2.4 GHz */
-		compatible = "pci168c,0027";
-		reg = <0x8800 0 0 0 0>;
-	};
-
-	wifi@12,0 { /* 5 GHz */
-		compatible = "pci168c,0027";
-		reg = <0x9000 0 0 0 0>;
-	};
 };
 
 &mdio0 {
@@ -108,9 +98,6 @@
 
 	phy-mode = "rgmii-id";
 	phy-handle = <&phy0>;
-
-	nvmem-cells = <&macaddr_cfg1_ethaddr>;
-	nvmem-cell-names = "mac-address";
 };
 
 &spi {
@@ -148,14 +135,6 @@
 				label = "cfg1";
 				reg = <0xe80000 0x40000>;
 				read-only;
-
-				nvmem-layout {
-					compatible = "u-boot,env-redundant-bool";
-					env-size = <0x10000>;
-
-					macaddr_cfg1_ethaddr: ethaddr {
-					};
-				};
 			};
 
 			partition@ec0000 {

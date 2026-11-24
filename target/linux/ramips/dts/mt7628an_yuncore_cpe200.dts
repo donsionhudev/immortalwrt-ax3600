@@ -8,6 +8,10 @@
 	compatible = "yuncore,cpe200", "mediatek,mt7628an-soc";
 	model = "Yuncore CPE200";
 
+	chosen {
+		bootargs = "console=ttyS0,57600";
+	};
+
 	aliases {
 		label-mac = &ethernet;
 		led-boot = &led_power;
@@ -105,7 +109,7 @@
 					};
 
 					eeprom_factory_8000: eeprom@8000 {
-						reg = <0x8000 0x4da8>;
+						reg = <0x8000 0x600>;
 					};
 
 					macaddr_factory_8004: macaddr@8004 {
@@ -137,8 +141,7 @@
 };
 
 &pcie0 {
-	wifi@0,0 {
-		compatible = "mediatek,mt76";
+	mt76@0,0 {
 		reg = <0x0000 0 0 0 0>;
 		ieee80211-freq-limit = <5000000 6000000>;
 		nvmem-cells = <&eeprom_factory_8000>, <&macaddr_factory_8004>;

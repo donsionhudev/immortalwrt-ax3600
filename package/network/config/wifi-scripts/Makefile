@@ -9,24 +9,19 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=wifi-scripts
 PKG_VERSION:=1.0
-PKG_RELEASE:=5
+PKG_RELEASE:=1
 PKG_LICENSE:=GPL-2.0
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
-PKG_CONFIG_DEPENDS:=CONFIG_WIFI_SCRIPTS_UCODE
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/wifi-scripts
   SECTION:=utils
   CATEGORY:=Base system
-  DEPENDS:=+netifd +ucode +ucode-mod-nl80211 +ucode-mod-rtnl +ucode-mod-ubus +ucode-mod-uci +ucode-mod-digest
+  DEPENDS:=+netifd +ucode +ucode-mod-nl80211 +ucode-mod-rtnl +ucode-mod-ubus +ucode-mod-uci
   TITLE:=Wi-Fi configuration scripts
   PKGARCH:=all
-endef
-
-define Package/wifi-scripts/config
-	source "$(SOURCE)/Config.in"
 endef
 
 define Package/wifi-scripts/description
@@ -45,12 +40,6 @@ endef
 define Package/wifi-scripts/install
 	$(INSTALL_DIR) $(1)
 	$(CP) ./files/* $(1)/
-ifeq ($(CONFIG_WIFI_SCRIPTS_UCODE),y)
-	$(CP) ./files-ucode/* $(1)/
-endif
-ifeq ($(CONFIG_WIFI_SCRIPTS_WPS_BUTTON_DISABLED),y)
-	rm -f $(1)/etc/rc.button/wps
-endif
 endef
 
 $(eval $(call BuildPackage,wifi-scripts))

@@ -6,17 +6,17 @@ BOARDNAME:=Qualcomm Atheros 802.11ax WiSoC-s
 FEATURES:=squashfs ramdisk fpu nand rtc emmc
 KERNELNAME:=Image
 CPU_TYPE:=cortex-a53
-SUBTARGETS:=ipq807x ipq60xx ipq50xx
+SUBTARGETS:=ipq807x ipq60xx
 
-KERNEL_PATCHVER:=6.18
+KERNEL_PATCHVER:=6.6
 
 include $(INCLUDE_DIR)/target.mk
 DEFAULT_PACKAGES += \
-	autocore automount cpufreq e2fsprogs f2fs-tools losetup luci uboot-envtools wpad-openssl \
-	kmod-ath11k kmod-ath11k-ahb kmod-ath11k-pci kmod-dsa kmod-dsa-qca8k kmod-phy-aquantia kmod-phy-qca83xx \
-	kmod-fs-ext4 kmod-fs-f2fs kmod-gpio-button-hotplug kmod-leds-gpio kmod-leds-pwm \
-	kmod-usb3 kmod-usb-dwc3 kmod-usb-dwc3-qcom kmod-usb-serial-qualcomm \
-	tc-tiny kmod-sched-flower kmod-sched-prio kmod-sched-act-police \
-	kmod-sched-act-pedit kmod-sched-mqprio kmod-sched-ets kmod-sched-act-vlan dcb
+	kmod-usb3 kmod-usb-dwc3 kmod-usb-dwc3-qcom \
+	kmod-leds-gpio kmod-gpio-button-hotplug \
+	kmod-qca-nss-dp \
+	kmod-ath11k-ahb wpad-openssl \
+	uboot-envtools losetup \
+	automount autocore luci-app-cpufreq
 
 $(eval $(call BuildTarget))

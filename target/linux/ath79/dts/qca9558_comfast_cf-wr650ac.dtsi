@@ -32,6 +32,12 @@
 			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 		};
 
+		wlan2g {
+			label = "blue:wlan2";
+			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy1tpt";
+		};
+
 		wlan5g {
 			label = "blue:wlan5";
 			gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
@@ -63,9 +69,9 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
+	switch0@1f {
 		compatible = "qca,ar8327";
-		reg = <0x10>;
+		reg = <0x1f>;
 		qca,ar8327-initvals = <
 			0x04 0x87600000 /* PORT0 PAD MODE CTRL */
 			0x0c 0x00080080 /* PORT6 PAD MODE CTRL */
@@ -98,17 +104,8 @@
 	};
 };
 
-&wdt {
-	status = "disabled";
-};
-
 &wmac {
 	status = "okay";
-
-	led {
-		led-sources = <13>;
-		led-active-low;
-	};
 };
 
 // This node is required for the Ethernet ports to work correctly.

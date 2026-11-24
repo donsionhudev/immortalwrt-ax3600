@@ -58,7 +58,7 @@ Signed-off-by: Jonas Karlman <jonas@kwiboo.se>
 
 --- a/arch/arm/mach-rockchip/Kconfig
 +++ b/arch/arm/mach-rockchip/Kconfig
-@@ -740,6 +740,15 @@ config TPL_ROCKCHIP_EARLYRETURN_TO_BROM
+@@ -584,6 +584,15 @@ config TPL_ROCKCHIP_EARLYRETURN_TO_BROM
  	  This enables support code in the BOOT0 hook for the TPL stage
  	  to allow multiple entries.
  
@@ -77,9 +77,9 @@ Signed-off-by: Jonas Karlman <jonas@kwiboo.se>
 --- a/arch/arm/mach-rockchip/Makefile
 +++ b/arch/arm/mach-rockchip/Makefile
 @@ -16,16 +16,15 @@ obj-tpl-$(CONFIG_ROCKCHIP_PX30) += px30-
- obj-spl-$(CONFIG_ROCKCHIP_RK3036) += rk3036-board-spl.o spl_common.o
+ obj-spl-$(CONFIG_ROCKCHIP_RK3036) += rk3036-board-spl.o
  
- ifeq ($(CONFIG_XPL_BUILD)$(CONFIG_TPL_BUILD),)
+ ifeq ($(CONFIG_SPL_BUILD)$(CONFIG_TPL_BUILD),)
 +obj-$(CONFIG_ROCKCHIP_COMMON_BOARD) += board.o
 +endif
  
@@ -172,7 +172,7 @@ Signed-off-by: Jonas Karlman <jonas@kwiboo.se>
 +CONFIG_ROCKCHIP_HANG_TO_BROM=y
  CONFIG_ROCKCHIP_SPI_IMAGE=y
  CONFIG_SPL_SERIAL=y
- CONFIG_SYS_LOAD_ADDR=0xc00800
+ CONFIG_DEBUG_UART_BASE=0xFE660000
 --- a/configs/generic-rk3588_defconfig
 +++ b/configs/generic-rk3588_defconfig
 @@ -4,6 +4,7 @@ CONFIG_COUNTER_FREQUENCY=24000000
@@ -182,4 +182,4 @@ Signed-off-by: Jonas Karlman <jonas@kwiboo.se>
 +CONFIG_ROCKCHIP_HANG_TO_BROM=y
  CONFIG_SPL_SERIAL=y
  CONFIG_TARGET_EVB_RK3588=y
- CONFIG_SYS_LOAD_ADDR=0xc00800
+ CONFIG_DEBUG_UART_BASE=0xFEB50000

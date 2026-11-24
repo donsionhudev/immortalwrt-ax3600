@@ -2346,7 +2346,7 @@ host_free:
 }
 
 /* 4 device share one driver, using "drvdata" to show difference */
-static void msdc_drv_remove(struct platform_device *pdev)
+static int msdc_drv_remove(struct platform_device *pdev)
 {
 	struct mmc_host *mmc;
 	struct msdc_host *host;
@@ -2371,6 +2371,8 @@ static void msdc_drv_remove(struct platform_device *pdev)
 			  host->dma.bd,  host->dma.bd_addr);
 
 	mmc_free_host(host->mmc);
+
+	return 0;
 }
 
 /* Fix me: Power Flow */

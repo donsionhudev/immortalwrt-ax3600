@@ -45,9 +45,8 @@
 		};
 	};
 
-	memory@40000000 {
+	memory {
 		reg = <0 0x40000000 0 0x40000000>;
-		device_type = "memory";
 	};
 };
 
@@ -84,12 +83,9 @@
 			#interrupt-cells = <1>;
 			interrupt-parent = <&pio>;
 			interrupts = <53 IRQ_TYPE_LEVEL_HIGH>;
-			reset-gpios = <&pio 54 GPIO_ACTIVE_HIGH>;
+			reset-gpios = <&pio 54 0>;
 
 			ports {
-				#address-cells = <1>;
-				#size-cells = <0>;
-
 				wan: port@4 {
 					reg = <4>;
 					label = "wan";
@@ -210,9 +206,12 @@
 };
 
 &slot0 {
-	wmac1: wifi@0,0 {
-		compatible = "mediatek,mt76";
+	wmac1: mt7915@0,0 {
 		reg = <0x0000 0 0 0 0>;
+		ieee80211-freq-limit = <5000000 6000000>;
+		mediatek,mtd-eeprom = <&factory 0x05000>;
+		nvmem-cells = <&macaddr_odm 3>;
+		nvmem-cell-names = "mac-address";
 	};
 };
 
@@ -264,12 +263,11 @@
 				read-only;
 				odm_partition: nvmem-layout {
 					compatible = "fixed-layout";
-					#address-cells = <1>;
-					#size-cells = <1>;
 				};
 			};
 
-			partition@1C0000 {
+			config1: partition@1C0000 {
+				compatible = "nvmem-cells";
 				label = "Config1";
 				reg = <0x001C0000 0x00080000>;
 				read-only;
@@ -282,13 +280,11 @@
 			};
 
 			partition@2C0000 {
-				compatible = "denx,fit";
-				reg = <0x002C0000 0x02D00000>;
-				#address-cells = <1>;
-				#size-cells = <1>;
 				label = "Kernel1";
-				openwrt,cmdline-match = "boot_part=Kernel1";
+				reg = <0x002C0000 0x02D00000>;
 
+				compatible = "denx,fit";
+				openwrt,cmdline-match = "boot_part=Kernel1";
 				partition@0 {
 					label = "kernel";
 					reg = <0x00000000 0x00800000>;
@@ -301,13 +297,11 @@
 			};
 
 			partition@2FC0000 {
-				compatible = "denx,fit";
-				reg = <0x02FC0000 0x02D00000>;
-				#address-cells = <1>;
-				#size-cells = <1>;
 				label = "Kernel2";
-				openwrt,cmdline-match = "boot_part=Kernel2";
+				reg = <0x02FC0000 0x02D00000>;
 
+				compatible = "denx,fit";
+				openwrt,cmdline-match = "boot_part=Kernel2";
 				partition@0 {
 					label = "kernel";
 					reg = <0x00000000 0x00800000>;
@@ -319,24 +313,10 @@
 				};
 			};
 
-			partition@5CC0000 {
+			factory: partition@5CC0000 {
 				label = "Factory";
 				reg = <0x05CC0000 0x00100000>;
 				read-only;
-
-				nvmem-layout {
-					compatible = "fixed-layout";
-					#address-cells = <1>;
-					#size-cells = <1>;
-
-					eeprom_factory_0: eeprom@0 {
-						reg = <0x0 0x4da8>; /* actual length 0x400 */
-					};
-
-					eeprom_factory_5000: eeprom@5000 {
-						reg = <0x5000 0xe00>;
-					};
-				};
 			};
 
 			partition@5DC0000 {
@@ -377,13 +357,9 @@
 &wmac {
 	pinctrl-names = "default";
 	pinctrl-0 = <&epa_elna_pins>;
-	nvmem-cells = <&eeprom_factory_0>, <&macaddr_odm 2>;
-	nvmem-cell-names = "eeprom", "mac-address";
+	mediatek,mtd-eeprom = <&factory 0x0000>;
+	nvmem-cells = <&macaddr_odm 2>;
+	nvmem-cell-names = "mac-address";
 	status = "okay";
 };
 
-&wmac1 {
-	nvmem-cells = <&eeprom_factory_5000>, <&macaddr_odm 3>;
-	nvmem-cell-names = "eeprom", "mac-address";
-	ieee80211-freq-limit = <5000000 6000000>;
-};

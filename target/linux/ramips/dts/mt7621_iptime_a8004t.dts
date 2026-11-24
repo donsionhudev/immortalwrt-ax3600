@@ -168,9 +168,6 @@
 
 &pcie {
 	status = "okay";
-
-	reset-gpios = <&gpio 19 GPIO_ACTIVE_LOW>,
-			<&gpio 8 GPIO_ACTIVE_LOW>;
 };
 
 &pcie0 {
@@ -195,7 +192,7 @@
 
 &state_default {
 	gpio {
-		groups = "wdt", "jtag", "i2c", "uart3";
+		groups = "wdt", "jtag", "i2c";
 		function = "gpio";
 	};
 };

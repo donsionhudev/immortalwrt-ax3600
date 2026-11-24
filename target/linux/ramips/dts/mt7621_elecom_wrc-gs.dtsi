@@ -147,12 +147,12 @@
 				read-only;
 			};
 
-			partition@40000 {
+			factory: partition@40000 {
 				label = "factory";
 				reg = <0x40000 0x10000>;
 				read-only;
 
-				nvmem: nvmem-layout {
+				nvmem-layout {
 					compatible = "fixed-layout";
 					#address-cells = <1>;
 					#size-cells = <1>;
@@ -172,10 +172,6 @@
 
 &pcie {
 	status = "okay";
-};
-
-&usb_phy {
-	status = "disabled";
 };
 
 &xhci {

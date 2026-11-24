@@ -36,6 +36,12 @@
 			default-state = "keep";
 		};
 
+		wlan2g {
+			label = "green:wlan2g";
+			gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy1tpt";
+		};
+
 		wlan5g {
 			label = "green:wlan5g";
 			gpios = <&gpio 20 GPIO_ACTIVE_HIGH>;
@@ -105,6 +111,14 @@
 					macaddr_art_0: macaddr@0 {
 						reg = <0x0 0x6>;
 					};
+
+					macaddr_art_1002: macaddr@1002 {
+						reg = <0x1002 0x6>;
+					};
+
+					macaddr_art_5006: macaddr@5006 {
+						reg = <0x5006 0x6>;
+					};
 				};
 			};
 
@@ -133,15 +147,10 @@
 &eth0 {
 	status = "okay";
 
-	phy-mode = "sgmii";
+	phy-handle = <&phy0>;
 
 	nvmem-cells = <&macaddr_art_0>;
 	nvmem-cell-names = "mac-address";
-
-	fixed-link {
-		speed = <1000>;
-		full-duplex;
-	};
 };
 
 &gpio {
@@ -156,9 +165,9 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
-		compatible = "qca,ar8327";
-		reg = <0x10>;
+	phy0: ethernet-phy@0 {
+		reg = <0>;
+		phy-mode = "sgmii";
 		qca,ar8327-initvals = <
 			0x04 0x00080080 /* PORT0 PAD MODE CTRL */
 			0x7c 0x0000007e /* PORT0_STATUS */
@@ -173,8 +182,8 @@
 		compatible = "qcom,ath10k";
 		reg = <0 0 0 0 0>;
 
-		nvmem-cells = <&calibration_ath10k>;
-		nvmem-cell-names = "pre-calibration";
+		nvmem-cells = <&macaddr_art_5006>, <&calibration_ath10k>;
+		nvmem-cell-names = "mac-address", "pre-calibration";
 	};
 };
 
@@ -197,11 +206,6 @@
 &wmac {
 	status = "okay";
 
-	nvmem-cells = <&calibration_ath9k>;
-	nvmem-cell-names = "calibration";
-
-	led {
-		led-sources = <19>;
-		led-active-low;
-	};
+	nvmem-cells = <&macaddr_art_1002>, <&calibration_ath9k>;
+	nvmem-cell-names = "mac-address", "calibration";
 };

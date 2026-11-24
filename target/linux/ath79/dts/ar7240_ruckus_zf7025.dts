@@ -146,12 +146,9 @@
 			};
 
 			partition@f80000 {
+				compatible = "u-boot,env";
 				reg = <0xf80000 0x40000>;
 				label = "u-boot-env";
-
-				nvmem-layout {
-					compatible = "u-boot,env";
-				};
 			};
 
 			board_data: partition@fc0000 {
@@ -184,16 +181,6 @@
 &eth0 {
 	nvmem-cells = <&macaddr_board_data_66>;
 	nvmem-cell-names = "mac-address";
-};
-
-/*
- * eth0 is connected to PHY 4 of the AR7240 built-in switch, which is
- * 10/100 Mbps only, but the PHY erroneously advertises gigabit. This
- * makes phylib attempt 1000BASE-T master/slave resolution that never
- * completes, breaking auto-negotiation. Cap the PHY at 100 Mbps.
- */
-&swphy4 {
-	max-speed = <100>;
 };
 
 &eth1 {

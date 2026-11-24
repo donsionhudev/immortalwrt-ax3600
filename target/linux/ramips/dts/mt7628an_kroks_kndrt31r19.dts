@@ -21,6 +21,7 @@
 
 	gpio_export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		modem1power {
 			gpio-export,name = "modem1power";

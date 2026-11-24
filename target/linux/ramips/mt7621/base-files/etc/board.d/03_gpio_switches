@@ -6,21 +6,11 @@ board_config_update
 board=$(board_name)
 
 case "$board" in
-asus,4g-ax56)
-	ucidef_add_gpio_switch "modem_reboot" "Modem reboot" "reboot:modem" "1"
-	ucidef_add_gpio_switch "modem_reset" "Modem reset" "reset:modem" "1"
-	;;
 mikrotik,routerboard-760igs)
 	ucidef_add_gpio_switch "poe_passthrough" "PoE Passthrough" "529"
 	;;
 telco-electronics,x1)
 	ucidef_add_gpio_switch "modem_reset" "Modem Reset" "528"
-	;;
-teltonika,rutm11|\
-teltonika,rutm30|\
-teltonika,rutm50)
-	ucidef_add_gpio_switch "modem_power" "Modem power button" "modem_power" "1"
-	ucidef_add_gpio_switch "modem_reset" "Modem reset" "modem_reset" "0"
 	;;
 tozed,zlt-s12-pro)
 	ucidef_add_gpio_switch "lt72_power" "Power LTE modem" "lt72_power" "1"
@@ -44,7 +34,6 @@ zyxel,lte5398-m904)
 	ucidef_add_gpio_switch "usb_power" "Power USB Port" "usb_power" "1"
 	ucidef_add_gpio_switch "lte_power" "Power LTE modem" "lte_power" "1"
 	;;
-zyxel,lte7490-m904|\
 zyxel,nr7101)
 	ucidef_add_gpio_switch "lte_reset" "Reset LTE/5G modem" "515"
 	;;

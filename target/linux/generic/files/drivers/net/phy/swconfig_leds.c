@@ -213,15 +213,15 @@ static ssize_t swconfig_trig_mode_show(struct device *dev,
 	read_unlock(&trig_data->lock);
 
 	if (mode == 0) {
-		strscpy(buf, "none\n", PAGE_SIZE);
+		strcpy(buf, "none\n");
 	} else {
 		if (mode & SWCONFIG_LED_MODE_LINK)
-			strlcat(buf, "link ", PAGE_SIZE);
+			strcat(buf, "link ");
 		if (mode & SWCONFIG_LED_MODE_TX)
-			strlcat(buf, "tx ", PAGE_SIZE);
+			strcat(buf, "tx ");
 		if (mode & SWCONFIG_LED_MODE_RX)
-			strlcat(buf, "rx ", PAGE_SIZE);
-		strlcat(buf, "\n", PAGE_SIZE);
+			strcat(buf, "rx ");
+		strcat(buf, "\n");
 	}
 
 	return strlen(buf)+1;
@@ -237,7 +237,8 @@ static ssize_t swconfig_trig_mode_store(struct device *dev,
 	char *p, *token;
 
 	/* take a copy since we don't want to trash the inbound buffer when using strsep */
-	strscpy(copybuf, buf, sizeof(copybuf));
+	strncpy(copybuf, buf, sizeof(copybuf));
+	copybuf[sizeof(copybuf) - 1] = 0;
 	p = copybuf;
 
 	while ((token = strsep(&p, " \t\n")) != NULL) {

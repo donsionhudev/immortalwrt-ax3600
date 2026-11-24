@@ -8,14 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ead
-PKG_RELEASE:=3
+PKG_RELEASE:=2
 
 PKG_BUILD_DEPENDS:=libpcap
 PKG_BUILD_DIR:=$(BUILD_DIR)/ead
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=GPL-2.0
-PKG_FIXUP:=autoreconf
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -24,7 +23,7 @@ define Package/ead
   SECTION:=net
   CATEGORY:=Base system
   TITLE:=Emergency Access Daemon
-  URL:=https://bridge.sourceforge.net/
+  URL:=http://bridge.sourceforge.net/
 endef
 
 define Package/ead/description
@@ -37,15 +36,13 @@ CONFIGURE_PATH = tinysrp
 TARGET_CFLAGS += \
 	-I$(PKG_BUILD_DIR) \
 	-I$(PKG_BUILD_DIR)/tinysrp \
-	$(TARGET_CPPFLAGS) \
-	-Wno-error=implicit-function-declaration
+	$(TARGET_CPPFLAGS)
 
 MAKE_FLAGS += \
 	CONFIGURE_ARGS="$(CONFIGURE_ARGS)" \
 	LIBS_EADCLIENT="$(PKG_BUILD_DIR)/tinysrp/libtinysrp.a" \
 	LIBS_EAD="$(PKG_BUILD_DIR)/tinysrp/libtinysrp.a $(STAGING_DIR)/usr/lib/libpcap.a" \
-	CFLAGS="$(TARGET_CFLAGS)" \
-	LDFLAGS="$(TARGET_LDFLAGS)"
+	CFLAGS="$(TARGET_CFLAGS)"
 
 define Package/ead/install
 	$(INSTALL_DIR) $(1)/sbin

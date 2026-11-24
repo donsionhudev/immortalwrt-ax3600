@@ -16,6 +16,7 @@
 
 	gpio-export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		gpio0 {
 			gpio-export,name = "gpio0";

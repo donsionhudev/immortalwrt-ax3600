@@ -123,23 +123,6 @@ get_config_restart_hash() {
 	export -n "$var=$_hash"
 }
 
-resolve_bridge_member_ports() {
-	local _lower _bridge _port _ports=""
-
-	_lower=$(ls "/sys/class/net/$1/" 2>/dev/null | grep "^lower_" | head -1)
-	[ -n "$_lower" ] || return 1
-
-	_bridge="${_lower#lower_}"
-	[ -d "/sys/class/net/$_bridge/bridge" ] || return 1
-
-	for _port in $(ls "/sys/class/net/$_bridge/" 2>/dev/null | grep "^lower_"); do
-		append _ports "${_port#lower_}" ","
-	done
-
-	[ -n "$_ports" ] || return 1
-	echo "$_ports"
-}
-
 get_interface_csv() {
 	local _ifaces
 	config_get _ifaces "$2" "$3"
@@ -151,15 +134,7 @@ get_interface_csv() {
 
 		local _l2device=""
 		if network_get_physdev _l2device "$_iface" || [ -e "/sys/class/net/$_iface" ]; then
-			local _resolved="${_l2device:-$_iface}"
-			local _ports
-			# LLDP uses reserved multicast (01:80:c2:00:00:0e) that bridges
-			# trap rather than forward; trapped frames arrive on the member
-			# ports, not on bridge VLAN sub-interfaces, so resolve down to
-			# the individual bridge member ports
-			_ports=$(resolve_bridge_member_ports "$_resolved")
-			[ -n "$_ports" ] && _resolved="$_ports"
-			append _ifnames "$_resolved" ","
+			append _ifnames "${_l2device:-$_iface}" ","
 		else
 			# Glob case (interface is e.g. '!eth1' or 'eth*' or '*')
 			append _ifnames "$_iface" ","
@@ -256,15 +231,13 @@ write_lldpd_conf()
 	local lldp_mgmt_addr_advertisements
 	config_get_bool lldp_mgmt_addr_advertisements 'config' 'lldp_mgmt_addr_advertisements' 1
 
-	# lldpd 1.0.20 configure med fast-start -> configure lldp fast-start (doesn't depend on med, enabled unconditionally)
-	# See: https://github.com/lldpd/lldpd/commit/f2ea6e6a86e7d70104e1428a94ec37a24fe604ef
-	local lldp_fast_start
-	config_get_bool lldp_fast_start 'config' 'lldpmed_fast_start' 0
-
-	local lldp_fast_start_tx_interval
-	config_get lldp_fast_start_tx_interval 'config' 'lldpmed_fast_start_tx_interval' 0
-
 	if [ "$CONFIG_LLDPD_WITH_LLDPMED" = "y" ]; then
+		local lldpmed_fast_start
+		config_get_bool lldpmed_fast_start 'config' 'lldpmed_fast_start' 0
+
+		local lldpmed_fast_start_tx_interval
+		config_get lldpmed_fast_start_tx_interval 'config' 'lldpmed_fast_start_tx_interval' 0
+
 		local lldp_location
 		config_get lldp_location 'config' 'lldp_location'
 
@@ -310,11 +283,11 @@ write_lldpd_conf()
 		[ -n "$lldp_med_inv_asset_id" ] && echo "configure inventory asset \"$lldp_med_inv_asset_id\"" >> "$LLDPD_CONF"
 	fi
 
-	if [ "$lldp_fast_start" -gt 0 ]; then
-		if [ "$lldp_fast_start_tx_interval" -gt 0 ]; then
-			echo "configure lldp fast-start tx-interval $lldp_fast_start_tx_interval" >> "$LLDPD_CONF"
+	if [ "$CONFIG_LLDPD_WITH_LLDPMED" = "y" ] && [ "$lldpmed_fast_start" -gt 0 ]; then
+		if [ "$lldpmed_fast_start_tx_interval" -gt 0 ]; then
+			echo "configure med fast-start tx-interval $lldpmed_fast_start_tx_interval" >> "$LLDPD_CONF"
 		else
-			echo "configure lldp fast-start enable" >> "$LLDPD_CONF"
+			echo "configure med fast-start enable" >> "$LLDPD_CONF"
 		fi
 	fi
 	if [ "$CONFIG_LLDPD_WITH_LLDPMED" = "y" ]; then
@@ -520,7 +493,6 @@ reload_service() {
 	$LLDPCLI -u "$LLDPSOCKET" >/dev/null 2>&1 <<-EOF
 		pause
 		unconfigure lldp custom-tlv
-		unconfigure lldp fast-start
 		unconfigure lldp capabilities-advertisements
 		unconfigure lldp management-addresses-advertisements
 		# unconfigures user-configured system capabilities, and instead uses the kernel information:
@@ -539,13 +511,12 @@ reload_service() {
 		unconfigure inventory model
 		unconfigure inventory asset
 	EOF
-
 	if [ "$CONFIG_LLDPD_WITH_LLDPMED" = "y" ]; then
 		$LLDPCLI -u "$LLDPSOCKET" >/dev/null 2>&1 <<-EOF
-			# unconfigure med xxxxxxx
+			unconfigure med fast-start
 		EOF
-	fi
 
+	fi
 	# Rewrite lldpd.conf
 	# If something changed it should be included by the lldpcli call
 	write_lldpd_conf

@@ -31,8 +31,6 @@ def parse_args():
                         help="Required device architecture: like 'x86_64' or 'aarch64_generic'")
     parser.add_argument("-f", "--source-format", required=True, choices=source_format,
                         help="Required source format of input: 'apk' or 'opkg'")
-    parser.add_argument("-m", "--manifest", action="store_true", default=False,
-                        help="Print output in opkg list format, as 'package - version' pairs")
     parser.add_argument(dest="source",
                         help="File name for input, '-' for stdin")
     # fmt: on
@@ -44,11 +42,7 @@ def parse_apk(text: str) -> dict:
     packages: dict = {}
 
     data = json.loads(text)
-    if isinstance(data, dict) and "packages" in data:
-        # Extract 'apk adbdump' dict field to 'apk query' package list
-        data = data["packages"]
-
-    for package in data:
+    for package in data.get("packages", []):
         package_name: str = package["name"]
 
         for tag in package.get("tags", []):
@@ -89,15 +83,9 @@ if __name__ == "__main__":
         text: str = input.read()
 
     packages = parse_apk(text) if args.source_format == "apk" else parse_opkg(text)
-    if args.manifest:
-        # Emulate the output of 'opkg list' command for compatibility with
-        # legacy tooling.
-        for name, version in sorted(packages.items()):
-            print(name, "-", version)
-    else:
-        index = {
-            "version": 2,
-            "architecture": args.architecture,
-            "packages": packages,
-        }
-        print(json.dumps(index, indent=2))
+    index = {
+        "version": 2,
+        "architecture": args.architecture,
+        "packages": packages,
+    }
+    print(json.dumps(index, indent=2))

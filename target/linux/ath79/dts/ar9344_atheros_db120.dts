@@ -21,6 +21,12 @@
 	leds {
 		compatible = "gpio-leds";
 
+		wlan2g {
+			label = "green:wlan2g";
+			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy0tpt";
+		};
+
 		wlan5g {
 			label = "green:wlan5g";
 			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
@@ -39,6 +45,16 @@
 			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
 			trigger-sources = <&hub_port>;
 			linux,default-trigger = "usbport";
+		};
+	};
+
+	leds-ath9k {
+		compatible = "gpio-leds";
+
+		wlan5g-ath {
+			label = "green:wlan5g-ath";
+			gpios = <&ath9k 0 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy1tpt";
 		};
 	};
 
@@ -161,19 +177,14 @@
 	nvmem-cell-names = "mac-address";
 
 	phy-mode = "rgmii";
-
-	fixed-link {
-		speed = <1000>;
-		full-duplex;
-	};
+	phy-handle = <&phy0>;
 };
 
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
-		compatible = "qca,ar8327";
-		reg = <0x10>;
+	phy0: ethernet-phy@0 {
+		reg = <0>;
 
 		qca,ar8327-initvals = <
 			0x04 0x07600000 /* PORT0 PAD MODE CTRL */
@@ -214,17 +225,14 @@
 &pcie {
 	status = "okay";
 
-	wifi@0,0 {
+	ath9k: wifi@0,0 {
 		compatible = "pci168c,0030";
 		reg = <0x0000 0 0 0 0>;
 		nvmem-cells = <&calibration_art_5000>;
 		nvmem-cell-names = "calibration";
 		ieee80211-freq-limit = <4900000 5990000>;
-
-		led {
-			led-sources = <0>;
-			led-active-low;
-		};
+		#gpio-cells = <2>;
+		gpio-controller;
 	};
 };
 
@@ -233,11 +241,6 @@
 
 	nvmem-cells = <&calibration_art_1000>;
 	nvmem-cell-names = "calibration";
-
-	led {
-		led-sources = <13>;
-		led-active-low;
-	};
 };
 
 &usb {

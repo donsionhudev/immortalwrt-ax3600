@@ -63,6 +63,7 @@
 
 	gpio-export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		slic_int {
 			gpio-export,name = "slic_int";

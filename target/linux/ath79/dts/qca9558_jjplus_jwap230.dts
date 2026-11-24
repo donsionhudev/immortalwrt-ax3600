@@ -108,9 +108,9 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
+	switch@0 {
 		compatible = "qca,ar8327";
-		reg = <0x10>;
+		reg = <0>;
 
 		qca,ar8327-initvals = <
 			0x04 0x07600000 /* PORT0 PAD MODE CTRL */

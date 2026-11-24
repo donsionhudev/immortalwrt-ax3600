@@ -157,7 +157,7 @@ start_service() {
 	echo 128 > /proc/sys/net/ipv4/igmp_max_memberships
 }
 
-service_running() {
+service_started() {
 	procd_set_config_changed firewall
 }
 

@@ -16,7 +16,7 @@ define Device/arcadyan_arv7519rw22
   DEVICE_ALT1_MODEL := ARV7519RW22
   KERNEL_SIZE := 2048k
   IMAGE_SIZE := 31232k
-  DEVICE_PACKAGES := kmod-usb-dwc2 xrx200-rev1.1-phy22f-firmware xrx200-rev1.2-phy22f-firmware
+  DEVICE_PACKAGES := kmod-usb-dwc2
   SUPPORTED_DEVICES += ARV7519RW22
   DEFAULT := n
 endef
@@ -35,8 +35,7 @@ define Device/arcadyan_vgv7510kw22-brn
   SIGNATURE := BRNDA6431
   MAGIC := 0x12345678
   CRC32_POLY := 0x04c11db7
-  DEVICE_PACKAGES := kmod-rt2800-pci wpad-basic-openssl kmod-usb-dwc2 kmod-ltq-tapi \
-	kmod-ltq-vmmc xrx200-rev1.1-phy22f-firmware xrx200-rev1.2-phy22f-firmware
+  DEVICE_PACKAGES := kmod-rt2800-pci wpad-basic-openssl kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc
   SUPPORTED_DEVICES += VGV7510KW22BRN
 endef
 TARGET_DEVICES += arcadyan_vgv7510kw22-brn
@@ -50,8 +49,7 @@ define Device/arcadyan_vgv7510kw22-nor
   DEVICE_ALT0_MODEL := Box 6431
   DEVICE_ALT0_VARIANT := NOR
   IMAGE_SIZE := 15232k
-  DEVICE_PACKAGES := kmod-rt2800-pci wpad-openssl kmod-usb-dwc2 kmod-ltq-tapi \
-	kmod-ltq-vmmc xrx200-rev1.1-phy22f-firmware xrx200-rev1.2-phy22f-firmware
+  DEVICE_PACKAGES := kmod-rt2800-pci wpad-openssl kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc
   SUPPORTED_DEVICES += VGV7510KW22NOR
 endef
 TARGET_DEVICES += arcadyan_vgv7510kw22-nor
@@ -69,8 +67,7 @@ define Device/arcadyan_vgv7519-brn
   SIGNATURE := 5D00008000
   MAGIC := 0x12345678
   CRC32_POLY := 0x2083b8ed
-  DEVICE_PACKAGES := kmod-rt2800-pci wpad-basic-openssl kmod-usb-dwc2 kmod-ltq-tapi \
-	kmod-ltq-vmmc xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware
+  DEVICE_PACKAGES := kmod-rt2800-pci wpad-basic-openssl kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc
   SUPPORTED_DEVICES += VGV7519BRN
 endef
 TARGET_DEVICES += arcadyan_vgv7519-brn
@@ -84,8 +81,7 @@ define Device/arcadyan_vgv7519-nor
   DEVICE_ALT0_MODEL := Experiabox 8
   DEVICE_ALT0_VARIANT := NOR
   IMAGE_SIZE := 15360k
-  DEVICE_PACKAGES := kmod-rt2800-pci wpad-openssl kmod-usb-dwc2 kmod-ltq-tapi \
-	kmod-ltq-vmmc xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware
+  DEVICE_PACKAGES := kmod-rt2800-pci wpad-openssl kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc
   SUPPORTED_DEVICES += VGV7519NOR
 endef
 TARGET_DEVICES += arcadyan_vgv7519-nor
@@ -99,8 +95,7 @@ define Device/arcadyan_vrv9510kwac23
   DEVICE_ALT0_MODEL := Next
   BOARD_NAME := VRV9510KWAC23
   DEVICE_PACKAGES :=  kmod-b43 wpad-basic-openssl broadcom-43222-sprom \
-	broadcom-4360-sprom kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc \
-	xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware
+    broadcom-4360-sprom kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc
   KERNEL_SIZE := 4096k
   SUPPORTED_DEVICES += arcadyan_vrv9510kwac23
 endef
@@ -117,8 +112,7 @@ define Device/avm_fritz3370
   IMAGES += eva-kernel.bin eva-filesystem.bin
   IMAGE/eva-kernel.bin := append-kernel
   IMAGE/eva-filesystem.bin := append-ubi
-  DEVICE_PACKAGES := kmod-ath9k wpad-basic-openssl kmod-usb-dwc2 fritz-tffs \
-	xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware
+  DEVICE_PACKAGES := kmod-ath9k wpad-basic-openssl kmod-usb-dwc2 fritz-tffs
 endef
 
 define Device/avm_fritz3370-rev2-hynix
@@ -145,8 +139,7 @@ define Device/avm_fritz3390
   KERNEL_SIZE := 4096k
   IMAGE_SIZE := 49152k
   DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-openssl \
-	kmod-usb-dwc2 fritz-tffs xrx200-rev1.1-phy11g-firmware \
-	xrx200-rev1.2-phy11g-firmware
+	kmod-usb-dwc2 fritz-tffs
 endef
 TARGET_DEVICES += avm_fritz3390
 
@@ -158,8 +151,7 @@ define Device/avm_fritz3490
   DEVICE_VARIANT := Other NAND
   KERNEL_SIZE := 4096k
   IMAGE_SIZE := 49152k
-  DEVICE_PACKAGES := kmod-usb-xhci-pci-renesas fritz-tffs \
-	xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware -kmod-owl-loader
+  DEVICE_PACKAGES := kmod-usb3 fritz-tffs -kmod-owl-loader
 endef
 TARGET_DEVICES += avm_fritz3490
 
@@ -171,8 +163,7 @@ define Device/avm_fritz3490-micron
   DEVICE_VARIANT := Micron NAND
   KERNEL_SIZE := 4096k
   IMAGE_SIZE := 49152k
-  DEVICE_PACKAGES := kmod-usb-xhci-pci-renesas fritz-tffs \
-	xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware -kmod-owl-loader
+  DEVICE_PACKAGES := kmod-usb3 fritz-tffs -kmod-owl-loader
 endef
 TARGET_DEVICES += avm_fritz3490-micron
 
@@ -186,8 +177,7 @@ define Device/avm_fritz5490
   DEVICE_VARIANT := Other NAND
   KERNEL_SIZE := 4096k
   IMAGE_SIZE := 49152k
-  DEVICE_PACKAGES := kmod-dsa-qca8k kmod-usb-xhci-pci-renesas \
-	fritz-tffs xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware \
+  DEVICE_PACKAGES := kmod-dsa-qca8k kmod-phy-qca83xx kmod-usb3 fritz-tffs \
 	-ltq-vdsl-vr9-vectoring-fw-installer -kmod-ltq-vdsl-vr9-mei \
 	-kmod-ltq-vdsl-vr9 -kmod-ltq-atm-vr9 -kmod-ltq-ptm-vr9 \
 	-ltq-vdsl-vr9-app -kmod-owl-loader \
@@ -205,8 +195,7 @@ define Device/avm_fritz5490-micron
   DEVICE_VARIANT := Micron NAND
   KERNEL_SIZE := 4096k
   IMAGE_SIZE := 49152k
-  DEVICE_PACKAGES := kmod-dsa-qca8k kmod-usb-xhci-pci-renesas \
-	fritz-tffs xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware \
+  DEVICE_PACKAGES := kmod-dsa-qca8k kmod-phy-qca83xx kmod-usb3 fritz-tffs \
 	-ltq-vdsl-vr9-vectoring-fw-installer -kmod-ltq-vdsl-vr9-mei \
 	-kmod-ltq-vdsl-vr9 -kmod-ltq-atm-vr9 -kmod-ltq-ptm-vr9 \
 	-ltq-vdsl-vr9-app -kmod-owl-loader \
@@ -220,8 +209,7 @@ define Device/avm_fritz7360sl
   DEVICE_MODEL := FRITZ!Box 7360 SL
   IMAGE_SIZE := 15744k
   DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-openssl \
-	kmod-usb-dwc2 fritz-tffs xrx200-rev1.1-phy11g-firmware \
-	xrx200-rev1.2-phy11g-firmware
+	kmod-usb-dwc2 fritz-tffs
   SUPPORTED_DEVICES += FRITZ7360SL
 endef
 TARGET_DEVICES += avm_fritz7360sl
@@ -233,8 +221,7 @@ define Device/avm_fritz7360-v2
   DEVICE_VARIANT := v2
   IMAGE_SIZE := 32128k
   DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-openssl \
-	kmod-usb-dwc2 fritz-tffs xrx200-rev1.1-phy11g-firmware \
-	xrx200-rev1.2-phy11g-firmware
+	kmod-usb-dwc2 fritz-tffs
 endef
 TARGET_DEVICES += avm_fritz7360-v2
 
@@ -246,8 +233,7 @@ define Device/avm_fritz7362sl
   KERNEL_SIZE := 4096k
   IMAGE_SIZE := 49152k
   DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-openssl \
-	kmod-usb-dwc2 fritz-tffs xrx200-rev1.1-phy11g-firmware \
-	xrx200-rev1.2-phy11g-firmware
+	kmod-usb-dwc2 fritz-tffs
 endef
 TARGET_DEVICES += avm_fritz7362sl
 
@@ -260,8 +246,7 @@ define Device/avm_fritz7412
   KERNEL_SIZE := 4096k
   IMAGE_SIZE := 49152k
   DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-openssl \
-	fritz-tffs-nand fritz-caldata xrx200-rev1.1-phy22f-firmware \
-	xrx200-rev1.2-phy22f-firmware
+	fritz-tffs-nand fritz-caldata
 endef
 TARGET_DEVICES += avm_fritz7412
 
@@ -273,8 +258,7 @@ define Device/avm_fritz7430
   KERNEL_SIZE := 4096k
   IMAGE_SIZE := 49152k
   DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-openssl \
-	kmod-usb-dwc2 fritz-tffs-nand fritz-caldata xrx200-rev1.1-phy22f-firmware \
-	xrx200-rev1.2-phy22f-firmware
+	kmod-usb-dwc2 fritz-tffs-nand fritz-caldata
 endef
 TARGET_DEVICES += avm_fritz7430
 
@@ -286,8 +270,7 @@ define Device/avm_fritz7490
   DEVICE_VARIANT := Other NAND
   KERNEL_SIZE := 4096k
   IMAGE_SIZE := 49152k
-  DEVICE_PACKAGES := kmod-usb-xhci-pci-renesas fritz-tffs \
-	xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware -kmod-owl-loader
+  DEVICE_PACKAGES := kmod-usb3 fritz-tffs -kmod-owl-loader
 endef
 TARGET_DEVICES += avm_fritz7490
 
@@ -299,8 +282,7 @@ define Device/avm_fritz7490-micron
   DEVICE_VARIANT := Micron NAND
   KERNEL_SIZE := 4096k
   IMAGE_SIZE := 49152k
-  DEVICE_PACKAGES := kmod-usb-xhci-pci-renesas fritz-tffs \
-	xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware -kmod-owl-loader
+  DEVICE_PACKAGES := kmod-usb3 fritz-tffs -kmod-owl-loader
 endef
 TARGET_DEVICES += avm_fritz7490-micron
 
@@ -316,9 +298,8 @@ define Device/bt_homehub-v5a
   DEVICE_ALT1_VENDOR := Plusnet
   DEVICE_ALT1_MODEL := Hub One
   BOARD_NAME := BTHOMEHUBV5A
-  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader kmod-ath10k-ct \
-	ath10k-firmware-qca988x-ct wpad-openssl kmod-usb-dwc2 \
-	xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware
+  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader \
+	kmod-ath10k-ct ath10k-firmware-qca988x-ct wpad-openssl kmod-usb-dwc2
   SUPPORTED_DEVICES += BTHOMEHUBV5A
 endef
 TARGET_DEVICES += bt_homehub-v5a
@@ -328,8 +309,7 @@ define Device/buffalo_wbmr-300hpd
   DEVICE_VENDOR := Buffalo
   DEVICE_MODEL := WBMR-300HPD
   IMAGE_SIZE := 15616k
-  DEVICE_PACKAGES := kmod-mt7603 wpad-openssl kmod-usb-dwc2 \
-	xrx200-rev1.1-phy22f-firmware xrx200-rev1.2-phy22f-firmware
+  DEVICE_PACKAGES := kmod-mt7603 wpad-openssl kmod-usb-dwc2
   SUPPORTED_DEVICES += WBMR300
 endef
 TARGET_DEVICES += buffalo_wbmr-300hpd
@@ -341,9 +321,7 @@ define Device/lantiq_easy80920-nand
   DEVICE_MODEL := VR9 EASY80920
   DEVICE_VARIANT := NAND
   IMAGE_SIZE := 64512k
-  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-openssl \
-	kmod-usb-dwc2 kmod-usb-ledtrig-usbport xrx200-rev1.1-phy11g-firmware \
-	xrx200-rev1.2-phy11g-firmware
+  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-openssl kmod-usb-dwc2 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += lantiq_easy80920-nand
 
@@ -353,9 +331,7 @@ define Device/lantiq_easy80920-nor
   DEVICE_MODEL := VR9 EASY80920
   DEVICE_VARIANT := NOR
   IMAGE_SIZE := 7936k
-  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-basic-openssl \
-	kmod-usb-dwc2 kmod-usb-ledtrig-usbport xrx200-rev1.1-phy11g-firmware \
-	xrx200-rev1.2-phy11g-firmware
+  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-basic-openssl kmod-usb-dwc2 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += lantiq_easy80920-nor
 
@@ -368,9 +344,7 @@ define Device/zyxel_p-2812hnu-f1
   DEVICE_MODEL := P-2812HNU
   DEVICE_VARIANT := F1
   BOARD_NAME := P2812HNUF1
-  DEVICE_PACKAGES := kmod-rt2800-pci wpad-openssl kmod-usb-dwc2 \
-	kmod-usb-ledtrig-usbport xrx200-rev1.1-phy11g-firmware \
-	xrx200-rev1.2-phy11g-firmware
+  DEVICE_PACKAGES := kmod-rt2800-pci wpad-openssl kmod-usb-dwc2 kmod-usb-ledtrig-usbport
   KERNEL_SIZE := 5120k
   SUPPORTED_DEVICES += P2812HNUF1
 endef
@@ -383,8 +357,7 @@ define Device/zyxel_p-2812hnu-f3
   DEVICE_MODEL := P-2812HNU
   DEVICE_VARIANT := F3
   BOARD_NAME := P2812HNUF3
-  DEVICE_PACKAGES := kmod-rt2800-pci wpad-basic-openssl kmod-usb-dwc2 \
-	xrx200-rev1.1-phy11g-firmware xrx200-rev1.2-phy11g-firmware
+  DEVICE_PACKAGES := kmod-rt2800-pci wpad-basic-openssl kmod-usb-dwc2
   KERNEL_SIZE := 2048k
   SUPPORTED_DEVICES += P2812HNUF3
   DEFAULT := n

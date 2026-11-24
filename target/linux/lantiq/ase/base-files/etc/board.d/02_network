@@ -36,7 +36,8 @@ lantiq_setup_macs()
 
 	case "$board" in
 	allnet,all0333cj)
-		wan_mac=$(macaddr_add "$(mtd_get_mac_ascii u-boot-env ethaddr)" 1)
+		lan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
+		wan_mac=$(macaddr_add "$lan_mac" 1)
 		;;
 	esac
 

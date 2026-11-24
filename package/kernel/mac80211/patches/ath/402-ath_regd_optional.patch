@@ -1,13 +1,3 @@
-From: OpenWrt community <openwrt-devel@lists.openwrt.org>
-Subject: [PATCH] wifi: ath: make EEPROM regulatory restrictions optional
-
-Add ATH_USER_REGD to let the system regulatory configuration take
-precedence over the Atheros EEPROM regulatory restrictions.
-
-Original author was not recorded in the imported patch.
-[viking.yfy@qq.com: complete imported patch metadata]
-Signed-off-by: VIKINGYFY <viking.yfy@qq.com>
----
 --- a/drivers/net/wireless/ath/regd.c
 +++ b/drivers/net/wireless/ath/regd.c
 @@ -24,6 +24,7 @@
@@ -92,7 +82,7 @@ Signed-off-by: VIKINGYFY <viking.yfy@qq.com>
  	help
 --- a/local-symbols
 +++ b/local-symbols
-@@ -93,6 +93,7 @@ ADM8211=
+@@ -96,6 +96,7 @@ ADM8211=
  ATH_COMMON=
  WLAN_VENDOR_ATH=
  ATH_DEBUG=

@@ -8,7 +8,6 @@
 		led-failsafe = &led_dome_green;
 		led-running = &led_dome_green;
 		led-upgrade = &led_dome_green;
-		label-mac-device = &eth0;
 	};
 
 	leds {
@@ -84,7 +83,7 @@
 					};
 
 					calibration_art_1000: calibration@1000 {
-						reg = <0x1000 0x3d8>;
+						reg = <0x1000 0x440>;
 					};
 				};
 			};
@@ -93,7 +92,6 @@
 };
 
 &wifi {
-	compatible = "pci168c,002e";
 	nvmem-cells = <&calibration_art_1000>;
 	nvmem-cell-names = "calibration";
 };

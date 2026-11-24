@@ -43,6 +43,7 @@
 
 	gpio_export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		repeater {
 			gpio-export,name = "repeater_switch";

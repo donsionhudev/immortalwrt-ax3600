@@ -129,7 +129,7 @@
 		regulator-name = "usb-vbus";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
-		gpios = <&gpio 20 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio 20 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		regulator-always-on;
 	};
@@ -205,9 +205,8 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
-		compatible = "qca,ar8327";
-		reg = <0x10>;
+	phy0: ethernet-phy@0 {
+		reg = <0>;
 
 		qca,ar8327-initvals = <
 			0x04 0x07a00000 /* PORT0_PAD_MODE_CTRL */
@@ -229,6 +228,7 @@
 	pll-data = <0x06000000 0x00000101 0x00001616>;
 
 	phy-mode = "rgmii";
+	phy-handle = <&phy0>;
 
 	nvmem-cells = <&macaddr_config_6>;
 	nvmem-cell-names = "mac-address";
@@ -241,11 +241,6 @@
 		rxd-delay = <0>;
 		txd-delay = <0>;
 		txen-delay = <0>;
-	};
-
-	fixed-link {
-		speed = <1000>;
-		full-duplex;
 	};
 };
 
@@ -285,6 +280,8 @@
 	status = "okay";
 	#address-cells = <1>;
 	#size-cells = <0>;
+
+	dr_mode = "host";
 
 	/delete-node/ port@1;
 

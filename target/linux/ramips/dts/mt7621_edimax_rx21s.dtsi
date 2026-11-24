@@ -78,13 +78,6 @@
 				label = "u-boot-env";
 				reg = <0x30000 0x10000>;
 				read-only;
-
-				nvmem-layout {
-					compatible = "u-boot,env";
-
-					macaddr_uboot_ethaddr: ethaddr {
-					};
-				};
 			};
 
 			partition@40000 {
@@ -167,33 +160,21 @@
 		port@1 {
 			status = "okay";
 			label = "lan4";
-
-			nvmem-cells = <&macaddr_uboot_ethaddr>;
-			nvmem-cell-names = "mac-address";
 		};
 
 		port@2 {
 			status = "okay";
 			label = "lan3";
-
-			nvmem-cells = <&macaddr_uboot_ethaddr>;
-			nvmem-cell-names = "mac-address";
 		};
 
 		port@3 {
 			status = "okay";
 			label = "lan2";
-
-			nvmem-cells = <&macaddr_uboot_ethaddr>;
-			nvmem-cell-names = "mac-address";
 		};
 
 		port@4 {
 			status = "okay";
 			label = "lan1";
-
-			nvmem-cells = <&macaddr_uboot_ethaddr>;
-			nvmem-cell-names = "mac-address";
 		};
 	};
 };
@@ -203,10 +184,6 @@
 		groups = "uart3", "uart2", "jtag", "wdt";
 		function = "gpio";
 	};
-};
-
-&usb_phy {
-	status = "disabled";
 };
 
 &xhci {

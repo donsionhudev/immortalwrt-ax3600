@@ -167,7 +167,7 @@ part_magic_fat() {
 
 export_bootdevice() {
 	local cmdline uuid blockdev uevent line class
-	local MAJOR MINOR DEVNAME DEVTYPE DISKSEQ PARTN
+	local MAJOR MINOR DEVNAME DEVTYPE
 	local rootpart="$(cmdline_get_var root)"
 
 	case "$rootpart" in
@@ -216,7 +216,8 @@ export_bootdevice() {
 		while read line; do
 			export -n "$line"
 		done < "$uevent"
-		export BOOTDEV_DISKSEQ=$DISKSEQ
+		export BOOTDEV_MAJOR=$MAJOR
+		export BOOTDEV_MINOR=$MINOR
 		return 0
 	fi
 
@@ -224,18 +225,16 @@ export_bootdevice() {
 }
 
 export_partdevice() {
-	local var="$1" partn="$2"
-	local uevent line MAJOR MINOR DEVNAME DEVTYPE DISKSEQ PARTN
+	local var="$1" offset="$2"
+	local uevent line MAJOR MINOR DEVNAME DEVTYPE
 
 	for uevent in /sys/class/block/*/uevent; do
 		while read line; do
 			export -n "$line"
 		done < "$uevent"
-		if [ "$BOOTDEV_DISKSEQ" = "$DISKSEQ" -a -b "/dev/$DEVNAME" ]; then
-			if [ "$PARTN" = "$partn" -a "$DEVTYPE" = "partition" ] || [ "$partn" = "0" -a "$DEVTYPE" = "disk" ]; then
-				export "$var=$DEVNAME"
-				return 0
-			fi
+		if [ "$BOOTDEV_MAJOR" = "$MAJOR" -a $(($BOOTDEV_MINOR + $offset)) = "$MINOR" -a -b "/dev/$DEVNAME" ]; then
+			export "$var=$DEVNAME"
+			return 0
 		fi
 	done
 

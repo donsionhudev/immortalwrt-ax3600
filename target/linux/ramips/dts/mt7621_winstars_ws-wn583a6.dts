@@ -15,7 +15,6 @@
 		led-failsafe = &led_status_red;
 		led-running = &led_status_blue;
 		led-upgrade = &led_status_red;
-		label-mac-device = &wifi0;
 	};
 
 	leds {
@@ -102,10 +101,6 @@
 						reg = <0x0 0x400>;
 					};
 
-					macaddr_factory_4: macaddr@4 {
-						reg = <0x4 0x6>;
-					};
-
 					eeprom_factory_8000: eeprom@8000 {
 						reg = <0x8000 0x4da8>;
 					};
@@ -134,11 +129,11 @@
 };
 
 &pcie0 {
-	wifi0: wifi@0,0 {
+	wifi@0,0 {
 		compatible = "mediatek,mt76";
 		reg = <0x0000 0 0 0 0>;
-		nvmem-cells = <&eeprom_factory_0>, <&macaddr_factory_4>;
-		nvmem-cell-names = "eeprom", "mac-address";
+		nvmem-cells = <&eeprom_factory_0>;
+		nvmem-cell-names = "eeprom";
 	};
 };
 
@@ -181,10 +176,6 @@
 		groups = "jtag", "wdt", "rgmii2";
 		function = "gpio";
 	};
-};
-
-&usb_phy {
-	status = "disabled";
 };
 
 &xhci {

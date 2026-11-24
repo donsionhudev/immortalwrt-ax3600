@@ -8,7 +8,6 @@
 
 / {
 	aliases {
-		label-mac-device = &eth0;
 		led-boot = &led_power;
 		led-failsafe = &led_power;
 		led-running = &led_power;
@@ -34,6 +33,12 @@
 			color = <LED_COLOR_ID_AMBER>;
 			gpios = <&gpio 22 GPIO_ACTIVE_LOW>;
 			default-state = "on";
+		};
+
+		wifi2g {
+			label = "blue:wifi2g";
+			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy1tpt";
 		};
 
 		wifi5g {
@@ -66,14 +71,6 @@
 			partition@40000 {
 				label = "u-boot-env";
 				reg = <0x040000 0x010000>;
-
-				nvmem-layout {
-					compatible = "u-boot,env";
-
-					macaddr_uboot_ethaddr: ethaddr {
-						#nvmem-cell-cells = <1>;
-					};
-				};
 			};
 
 			partition@50000 {
@@ -97,10 +94,6 @@
 					compatible = "fixed-layout";
 					#address-cells = <1>;
 					#size-cells = <1>;
-
-					cal_art_1000: calibration@1000 {
-						reg = <0x1000 0x440>;
-					};
 
 					cal_art_5000: calibration@5000 {
 						reg = <0x5000 0x844>;
@@ -127,9 +120,6 @@
 	phy-handle = <&phy5>;
 	phy-mode = "rgmii-id";
 
-	nvmem-cells = <&macaddr_uboot_ethaddr 0>;
-	nvmem-cell-names = "mac-address";
-
 	pll-data = <0x82000000 0x80000101 0x80001313>;
 
 	gmac-config {
@@ -152,11 +142,5 @@
 &wmac {
 	status = "okay";
 
-	nvmem-cells = <&cal_art_1000>;
-	nvmem-cell-names = "calibration";
-
-	led {
-		led-sources = <13>;
-		led-active-low;
-	};
+	qca,no-eeprom;
 };

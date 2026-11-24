@@ -13,11 +13,11 @@
 #include <linux/init.h>
 #include <linux/device.h>
 #include <linux/of.h>
-#include <linux/platform_device.h>
+#include <linux/of_platform.h>
 #include <linux/delay.h>
 #include <linux/skbuff.h>
+#include <linux/rtl8367.h>
 
-#include "rtl8367.h"
 #include "rtl8366_smi.h"
 
 #define RTL8367_RESET_DELAY	1000	/* msecs*/
@@ -1076,6 +1076,7 @@ static int rtl8367_led_blinkrate_set(struct rtl8366_smi *smi, unsigned int rate)
 	return 0;
 }
 
+#ifdef CONFIG_OF
 static int rtl8367_extif_init_of(struct rtl8366_smi *smi,
 				 const char *name)
 {
@@ -1132,20 +1133,40 @@ err_init:
 
 	return err;
 }
+#else
+static int rtl8367_extif_init_of(struct rtl8366_smi *smi,
+				 const char *name)
+{
+	return -EINVAL;
+}
+#endif
 
 static int rtl8367_setup(struct rtl8366_smi *smi)
 {
+	struct rtl8367_platform_data *pdata;
 	int err;
 	int i;
+
+	pdata = smi->parent->platform_data;
 
 	err = rtl8367_init_regs(smi);
 	if (err)
 		return err;
 
 	/* initialize external interfaces */
-	err = rtl8367_extif_init_of(smi, "realtek,extif");
-	if (err)
-		return err;
+	if (smi->parent->of_node) {
+		err = rtl8367_extif_init_of(smi, "realtek,extif");
+		if (err)
+			return err;
+	} else {
+		err = rtl8367_extif_init(smi, 0, pdata->extif0_cfg);
+		if (err)
+			return err;
+
+		err = rtl8367_extif_init(smi, 1, pdata->extif1_cfg);
+		if (err)
+			return err;
+	}
 
 	/* set maximum packet length to 1536 bytes */
 	REG_RMW(smi, RTL8367_SWC0_REG, RTL8367_SWC0_MAX_LENGTH_MASK,
@@ -1780,7 +1801,7 @@ static int rtl8367_probe(struct platform_device *pdev)
 	return err;
 }
 
-static void rtl8367_remove(struct platform_device *pdev)
+static int rtl8367_remove(struct platform_device *pdev)
 {
 	struct rtl8366_smi *smi = platform_get_drvdata(pdev);
 
@@ -1790,6 +1811,8 @@ static void rtl8367_remove(struct platform_device *pdev)
 		rtl8366_smi_cleanup(smi);
 		kfree(smi);
 	}
+
+	return 0;
 }
 
 static void rtl8367_shutdown(struct platform_device *pdev)
@@ -1800,20 +1823,24 @@ static void rtl8367_shutdown(struct platform_device *pdev)
 		rtl8367_reset_chip(smi);
 }
 
+#ifdef CONFIG_OF
 static const struct of_device_id rtl8367_match[] = {
        { .compatible = "realtek,rtl8367" },
        {},
 };
 MODULE_DEVICE_TABLE(of, rtl8367_match);
+#endif
 
 static struct platform_driver rtl8367_driver = {
 	.driver = {
 		.name		= RTL8367_DRIVER_NAME,
-		.of_match_table = rtl8367_match,
+#ifdef CONFIG_OF
+		.of_match_table = of_match_ptr(rtl8367_match),
+#endif
 	},
-	.probe	  = rtl8367_probe,
-	.remove	  = rtl8367_remove,
-	.shutdown = rtl8367_shutdown,
+	.probe		= rtl8367_probe,
+	.remove		= rtl8367_remove,
+	.shutdown	= rtl8367_shutdown,
 };
 
 static int __init rtl8367_module_init(void)

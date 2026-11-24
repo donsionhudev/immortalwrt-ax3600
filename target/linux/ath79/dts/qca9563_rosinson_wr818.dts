@@ -23,6 +23,12 @@
 			label = "red:system";
 			gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
 		};
+
+		wifi_2g {
+			label = "red:wifi2g";
+			gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy0tpt";
+		};
 	};
 
 	keys {
@@ -106,9 +112,9 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
-		compatible = "qca,ar8327";
-		reg = <0x10>;
+	phy0: ethernet-phy@0 {
+		reg = <0>;
+		phy-mode = "sgmii";
 
 		qca,ar8327-initvals = <
 			0x04 0x00080080 /* PORT0 PAD MODE CTRL */
@@ -123,11 +129,7 @@
 	nvmem-cells = <&macaddr_info_0>;
 	nvmem-cell-names = "mac-address";
 	phy-mode = "sgmii";
-
-	fixed-link {
-		speed = <1000>;
-		full-duplex;
-	};
+	phy-handle = <&phy0>;
 };
 
 &wmac {
@@ -135,11 +137,6 @@
 
 	nvmem-cells = <&cal_art_1000>;
 	nvmem-cell-names = "calibration";
-
-	led {
-		led-sources = <19>;
-		led-active-low;
-	};
 };
 
 &usb_phy0 {

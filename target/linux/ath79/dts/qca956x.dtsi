@@ -148,7 +148,7 @@
 		};
 
 		wmac: wmac@18100000 {
-			compatible = "qca,qca9560-wifi";
+			compatible = "qca,qca9560-wmac";
 			reg = <0x18100000 0x10000>;
 
 			interrupt-parent = <&cpuintc>;
@@ -192,11 +192,12 @@
 			interrupts = <1>;
 
 			resets = <&rst 5>;
+			reset-names = "usb-host";
 
 			has-transaction-translator;
 			caps-offset = <0x100>;
 
-			phy-names = "usb";
+			phy-names = "usb-phy0";
 			phys = <&usb_phy0>;
 
 			status = "disabled";
@@ -218,11 +219,12 @@
 			interrupts = <2>;
 
 			resets = <&rst2 5>;
+			reset-names = "usb-host";
 
 			has-transaction-translator;
 			caps-offset = <0x100>;
 
-			phy-names = "usb";
+			phy-names = "usb-phy1";
 			phys = <&usb_phy1>;
 
 			status = "disabled";
@@ -252,7 +254,7 @@
 	usb_phy0: usb-phy {
 		compatible = "qca,qca9560-usb-phy", "qca,ar7200-usb-phy";
 
-		reset-names = "phy", "suspend-override";
+		reset-names = "usb-phy", "usb-suspend-override";
 		resets = <&rst 4>, <&rst 3>;
 
 		#phy-cells = <0>;
@@ -263,7 +265,7 @@
 	usb_phy1: usb-phy {
 		compatible = "qca,qca9560-usb-phy", "qca,ar7200-usb-phy";
 
-		reset-names = "phy", "suspend-override";
+		reset-names = "usb-phy", "usb-suspend-override";
 		resets = <&rst2 4>, <&rst2 3>;
 
 		#phy-cells = <0>;
@@ -324,7 +326,6 @@
 	compatible = "qca,qca9560-eth", "syscon";
 
 	phy-mode = "gmii";
-	builtin-switch;
 
 	resets = <&rst 13>;
 	reset-names = "mac";

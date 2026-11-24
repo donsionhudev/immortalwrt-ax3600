@@ -1,143 +1,44 @@
 PART_NAME=firmware
 REQUIRE_IMAGE_METADATA=1
 
-RAMFS_COPY_BIN='fw_printenv fw_setenv head seq'
+RAMFS_COPY_BIN='fw_printenv fw_setenv head'
 RAMFS_COPY_DATA='/etc/fw_env.config /var/lock/fw_printenv.lock'
-
-remove_oem_ubi_volume() {
-	local oem_volume_name="$1"
-	local oem_ubivol
-	local mtdnum
-	local ubidev
-
-	mtdnum=$(find_mtd_index "$CI_UBIPART")
-	if [ ! "$mtdnum" ]; then
-		return
-	fi
-
-	ubidev=$(nand_find_ubi "$CI_UBIPART")
-	if [ ! "$ubidev" ]; then
-		ubiattach --mtdn="$mtdnum"
-		ubidev=$(nand_find_ubi "$CI_UBIPART")
-	fi
-
-	if [ "$ubidev" ]; then
-		oem_ubivol=$(nand_find_volume "$ubidev" "$oem_volume_name")
-		[ "$oem_ubivol" ] && ubirmvol "/dev/$ubidev" --name="$oem_volume_name"
-	fi
-}
 
 platform_check_image() {
 	return 0;
 }
 
-# On RouterBOOT NAND devices the kernel is an ELF file inside a yaffs
-# partition rather than a raw image, so it has to be written with yafut. The
-# root filesystem is handled by UBI as usual. Extend the subtarget-wide list
-# instead of replacing it, so head/seq stay available for the other boards.
-RAMFS_COPY_BIN="$RAMFS_COPY_BIN yafut"
 
-platform_do_upgrade_mikrotik_nand() {
-	local fw_mtd board_dir
-
-	CI_KERNPART=none
-
-	fw_mtd=$(find_mtd_part kernel)
-	fw_mtd="${fw_mtd/block/}"
-	[ -n "$fw_mtd" ] || return 1
-
-	board_dir=$(tar tf "$1" | grep -m 1 '^sysupgrade-.*/$')
-	board_dir=${board_dir%/}
-	[ -n "$board_dir" ] || return 1
-
-	# Erase the yaffs partition first. Stock firmware already fills 4.38 MiB
-	# of the 8 MiB partition, leaving less free space than the loader ELF
-	# needs. yaffs only frees the old blocks after the write, so without
-	# erasing first the write would run out of space halfway through.
-	#
-	# A fully erased partition is a valid empty yaffs: the filesystem is log
-	# structured and keeps its metadata in the OOB area, there is no
-	# superblock to prepare.
-	#
-	# Recovery stays available either way, as RouterBOOT lives in a separate
-	# SPI-NOR flash that is not touched here.
-	mtd erase kernel || return 1
-
-	tar xf "$1" "${board_dir}/kernel" -O | \
-		yafut -d "$fw_mtd" -w -i - -o kernel -m 0755 || return 1
-
-	nand_do_upgrade "$1"
+yuncore_fap650_env_setup() {
+	local ubifile=$(board_name)
+	local active=$(fw_printenv -n owrt_slotactive)
+	[ -z "$active" ] && active=$(hexdump -s 0x94 -n 4 -e '4 "%d"' /dev/mtd$(find_mtd_index 0:bootconfig))
+	cat > /tmp/env_tmp << EOF
+owrt_slotactive=${active}
+owrt_bootcount=0
+bootfile=${ubifile}.ubi
+owrt_bootcountcheck=if test \$owrt_bootcount > 4; then run owrt_tftprecover; fi; if test \$owrt_bootcount = 3; then run owrt_slotswap; else echo bootcountcheck successfull; fi
+owrt_bootinc=if test \$owrt_bootcount < 5; then echo save env part; setexpr owrt_bootcount \${owrt_bootcount} + 1 && saveenv; else echo save env skipped; fi; echo current bootcount: \$owrt_bootcount
+bootcmd=run owrt_bootinc && run owrt_bootcountcheck && run owrt_slotselect && run owrt_bootlinux
+owrt_bootlinux=echo booting linux... && ubi part fs && ubi read 0x44000000 kernel && bootm; reset
+owrt_setslot0=setenv bootargs console=ttyMSM0,115200n8 ubi.mtd=rootfs root=mtd:rootfs rootfstype=squashfs rootwait swiotlb=1 && setenv mtdparts mtdparts=nand0:0x3c00000@0(fs)
+owrt_setslot1=setenv bootargs console=ttyMSM0,115200n8 ubi.mtd=rootfs_1 root=mtd:rootfs rootfstype=squashfs rootwait swiotlb=1 && setenv mtdparts mtdparts=nand0:0x3c00000@0x3c00000(fs)
+owrt_slotswap=setexpr owrt_slotactive 1 - \${owrt_slotactive} && saveenv && echo slot swapped. new active slot: \$owrt_slotactive
+owrt_slotselect=setenv mtdids nand0=nand0,nand1=spi0.0; if test \$owrt_slotactive = 0; then run owrt_setslot0; else run owrt_setslot1; fi
+owrt_tftprecover=echo trying to recover firmware with tftp... && sleep 10 && dhcp && flash rootfs && flash rootfs_1 && setenv owrt_bootcount 0 && setenv owrt_slotactive 0 && saveenv && reset
+owrt_env_ver=7
+EOF
+	fw_setenv --script /tmp/env_tmp
 }
 
 platform_do_upgrade() {
 	case "$(board_name)" in
-	mikrotik,chateau-5g-r17-ax)
-		platform_do_upgrade_mikrotik_nand "$1"
-		;;
-	alfa-network,ap120c-ax)
-		CI_UBIPART="rootfs_1"
-		alfa_bootconfig_rootfs_rotate "0:BOOTCONFIG" "148"
-		nand_do_upgrade "$1"
-		;;
 	cambiumnetworks,xe3-4)
 		fw_setenv bootcount 0
 		nand_do_upgrade "$1"
 		;;
-	anysafe,e1|\
-	dptech,ap3000-2c)
-		CI_UBIPART="rootfs"
+	netgear,wax214)
 		nand_do_upgrade "$1"
-		;;
-	cmiot,ax18|\
-	redmi,ax5|\
-	xiaomi,ax1800|\
-	zn,m2|\
-	glinet,gl-ax1800|\
-	glinet,gl-axt1800|\
-	netgear,rbr350|\
-	netgear,rbs350|\
-	netgear,wax214|\
-	qihoo,360v6)
-		nand_do_upgrade "$1"
-		;;
-	jdcloud,re-cs-02|\
-	jdcloud,re-cs-07|\
-	jdcloud,re-ss-01|\
-	link,nn6000-v1|\
-	link,nn6000-v2|\
-	philips,ly1800|\
-	redmi,ax5-jdcloud|\
-	sy,y6010)
-		local cfgpart=$(find_mmc_part "0:BOOTCONFIG")
-		part_num="$(hexdump -e '1/1 "%01x|"' -n 1 -s 148 -C $cfgpart | cut -f 1 -d "|" | head -n1)"
-		if [ "$part_num" -eq "1" ]; then
-			CI_KERNPART="0:HLOS_1"
-			CI_ROOTPART="rootfs_1"
-		else
-			CI_KERNPART="0:HLOS"
-			CI_ROOTPART="rootfs"
-		fi
-		emmc_do_upgrade "$1"
-		;;
-	netgear,wax610|\
-	netgear,wax610y)
-		remove_oem_ubi_volume wifi_fw
-		remove_oem_ubi_volume ubi_rootfs
-		nand_do_upgrade "$1"
-		;;
-	linksys,mr7350|\
-	linksys,mr7500)
-		linksys_pre_upgrade "$1"
-		remove_oem_ubi_volume squashfs
-		nand_do_upgrade "$1"
-		;;
-	tplink,eap610-outdoor|\
-	tplink,eap620-hd-v2|\
-	tplink,eap620-hd-v3|\
-	tplink,eap623-outdoor-hd-v1|\
-	tplink,eap625-outdoor-hd-v1)
-		remove_oem_ubi_volume ubi_rootfs
-		tplink_do_upgrade "$1"
 		;;
 	yuncore,fap650)
 		[ "$(fw_printenv -n owrt_env_ver 2>/dev/null)" != "7" ] && yuncore_fap650_env_setup
@@ -153,21 +54,6 @@ platform_do_upgrade() {
 		;;
 	*)
 		default_do_upgrade "$1"
-		;;
-	esac
-}
-
-platform_copy_config() {
-	case "$(board_name)" in
-	jdcloud,re-cs-02|\
-	jdcloud,re-cs-07|\
-	jdcloud,re-ss-01|\
-	link,nn6000-v1|\
-	link,nn6000-v2|\
-	philips,ly1800|\
-	redmi,ax5-jdcloud|\
-	sy,y6010)
-		emmc_copy_config
 		;;
 	esac
 }

@@ -1,5 +1,3 @@
-DTS_DIR := $(DTS_DIR)/qcom
-
 define Build/cros-gpt
 	cp $@ $@.tmp 2>/dev/null || true
 	ptgen -o $@.tmp -g \
@@ -37,6 +35,6 @@ define Device/google_wifi
 	# kmod-ramoops.
 	DEVICE_PACKAGES := partx-utils mkf2fs e2fsprogs \
 			   kmod-fs-ext4 kmod-fs-f2fs kmod-google-firmware \
-			   kmod-leds-lp5523 kmod-ramoops
+			   kmod-ramoops
 endef
 TARGET_DEVICES += google_wifi

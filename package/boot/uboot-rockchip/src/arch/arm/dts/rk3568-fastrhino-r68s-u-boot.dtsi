@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 
-#include "rk356x-u-boot.dtsi"
+#include "rk3568-fastrhino-r66s-u-boot.dtsi"
+
+/ {
+	chosen {
+		u-boot,spl-boot-order = "same-as-spl", &sdhci;
+	};
+};
 
 &sdhci {
 	cap-mmc-highspeed;

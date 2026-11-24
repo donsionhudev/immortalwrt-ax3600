@@ -1,13 +1,3 @@
-From: OpenWrt community <openwrt-devel@lists.openwrt.org>
-Subject: [PATCH] wifi: b43: make PIO support optional
-
-Allow builds to omit the PIO implementation and its associated code when
-only DMA operation is required.
-
-Original author was not recorded in the imported patch.
-[viking.yfy@qq.com: complete imported patch metadata]
-Signed-off-by: VIKINGYFY <viking.yfy@qq.com>
----
 --- a/drivers/net/wireless/broadcom/b43/Makefile
 +++ b/drivers/net/wireless/broadcom/b43/Makefile
 @@ -18,7 +18,7 @@ b43-$(CPTCFG_B43_PHY_AC)	+= phy_ac.o
@@ -21,7 +11,7 @@ Signed-off-by: VIKINGYFY <viking.yfy@qq.com>
  b43-$(CPTCFG_B43_LEDS)		+= leds.o
 --- a/drivers/net/wireless/broadcom/b43/main.c
 +++ b/drivers/net/wireless/broadcom/b43/main.c
-@@ -2002,10 +2002,12 @@ static void b43_do_interrupt_thread(stru
+@@ -2001,10 +2001,12 @@ static void b43_do_interrupt_thread(stru
  			dma_reason[0], dma_reason[1],
  			dma_reason[2], dma_reason[3],
  			dma_reason[4], dma_reason[5]);

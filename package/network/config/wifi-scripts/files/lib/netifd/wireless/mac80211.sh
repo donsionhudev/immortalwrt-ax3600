@@ -12,7 +12,7 @@ MP_CONFIG_INT="mesh_retry_timeout mesh_confirm_timeout mesh_holding_timeout mesh
 	       mesh_hwmp_rann_interval mesh_gate_announcements mesh_sync_offset_max_neighor
 	       mesh_rssi_threshold mesh_hwmp_active_path_to_root_timeout mesh_hwmp_root_interval
 	       mesh_hwmp_confirmation_interval mesh_awake_window mesh_plink_timeout"
-MP_CONFIG_BOOL="mesh_auto_open_plinks mesh_fwding"
+MP_CONFIG_BOOL="mesh_auto_open_plinks mesh_fwding mesh_nolearn"
 MP_CONFIG_STRING="mesh_power_mode"
 
 wdev_tool() {
@@ -38,7 +38,6 @@ drv_mac80211_init_device_config() {
 	config_add_array ht_capab
 	config_add_array channels
 	config_add_array scan_list
-	config_add_array he_spr_srg_bss_colors he_spr_srg_partial_bssid
 	config_add_boolean \
 		rxldpc \
 		short_gi_80 \
@@ -55,6 +54,7 @@ drv_mac80211_init_device_config() {
 		htc_vht \
 		rx_antenna_pattern \
 		tx_antenna_pattern \
+		he_spr_sr_control \
 		he_spr_psr_enabled \
 		he_bss_color_enabled \
 		he_twt_required
@@ -68,10 +68,7 @@ drv_mac80211_init_device_config() {
 		rx_stbc \
 		tx_stbc \
 		he_bss_color \
-		he_spr_sr_control \
-		he_spr_non_srg_obss_pd_max_offset \
-		he_spr_srg_obss_pd_min_offset \
-		he_spr_srg_obss_pd_max_offset
+		he_spr_non_srg_obss_pd_max_offset
 	config_add_boolean \
 		ldpc \
 		greenfield \
@@ -455,13 +452,9 @@ mac80211_hostapd_setup_base() {
 			he_twt_required:0 \
 			he_spr_sr_control:3 \
 			he_spr_psr_enabled:0 \
-			he_spr_non_srg_obss_pd_max_offset \
-			he_spr_srg_obss_pd_min_offset \
-			he_spr_srg_obss_pd_max_offset \
+			he_spr_non_srg_obss_pd_max_offset:0 \
 			he_bss_color:128 \
 			he_bss_color_enabled:1
-		json_get_values he_spr_srg_bss_colors he_spr_srg_bss_colors
-		json_get_values he_spr_srg_partial_bssid he_spr_srg_partial_bssid
 
 		he_phy_cap=$(iw phy "$phy" info | sed -n '/HE Iftypes: .*AP/,$p' | awk -F "[()]" '/HE PHY Capabilities/ { print $2 }' | head -1)
 		he_phy_cap=${he_phy_cap:2}
@@ -478,28 +471,15 @@ mac80211_hostapd_setup_base() {
 			he_su_beamformer:${he_phy_cap:6:2}:0x80:$he_su_beamformer \
 			he_su_beamformee:${he_phy_cap:8:2}:0x1:$he_su_beamformee \
 			he_mu_beamformer:${he_phy_cap:8:2}:0x2:$he_mu_beamformer \
+			he_spr_psr_enabled:${he_phy_cap:14:2}:0x1:$he_spr_psr_enabled \
 			he_twt_required:${he_mac_cap:0:2}:0x6:$he_twt_required
 
 		if [ "$he_bss_color_enabled" -gt 0 ]; then
 			append base_cfg "he_bss_color=$he_bss_color" "$N"
-			# An offset of 0 is a valid offset, so the presence of the option
-			# sets the Present bit, and not its value.
-			[ -n "$he_spr_non_srg_obss_pd_max_offset" ] && { \
+			[ "$he_spr_non_srg_obss_pd_max_offset" -gt 0 ] && { \
 				append base_cfg "he_spr_non_srg_obss_pd_max_offset=$he_spr_non_srg_obss_pd_max_offset" "$N"
 				he_spr_sr_control=$((he_spr_sr_control | (1 << 2)))
 			}
-			[ -n "$he_spr_srg_obss_pd_min_offset$he_spr_srg_obss_pd_max_offset" ] && {
-				he_spr_sr_control=$((he_spr_sr_control | (1 << 3)))
-				[ -n "$he_spr_srg_obss_pd_min_offset" ] && \
-					append base_cfg "he_spr_srg_obss_pd_min_offset=$he_spr_srg_obss_pd_min_offset" "$N"
-				[ -n "$he_spr_srg_obss_pd_max_offset" ] && \
-					append base_cfg "he_spr_srg_obss_pd_max_offset=$he_spr_srg_obss_pd_max_offset" "$N"
-			}
-			[ -n "$he_spr_srg_bss_colors" ] && \
-				append base_cfg "he_spr_srg_bss_colors=$he_spr_srg_bss_colors" "$N"
-			[ -n "$he_spr_srg_partial_bssid" ] && \
-				append base_cfg "he_spr_srg_partial_bssid=$he_spr_srg_partial_bssid" "$N"
-			[ "$he_spr_psr_enabled" -gt 0 ] && he_spr_psr_enabled=$((0x${he_phy_cap:14:2} & 0x1))
 			[ "$he_spr_psr_enabled" -gt 0 ] || he_spr_sr_control=$((he_spr_sr_control | (1 << 0)))
 			append base_cfg "he_spr_sr_control=$he_spr_sr_control" "$N"
 		else
@@ -581,12 +561,26 @@ mac80211_hostapd_setup_bss() {
 
 	cat >> /var/run/hostapd-$phy$vif_phy_suffix.conf <<EOF
 $hostapd_cfg
-${macaddr:+bssid=$macaddr}
+bssid=$macaddr
 ${default_macaddr:+#default_macaddr}
 ${random_macaddr:+#random_macaddr}
 ${dtim_period:+dtim_period=$dtim_period}
 ${max_listen_int:+max_listen_interval=$max_listen_int}
 EOF
+}
+
+mac80211_get_addr() {
+	local phy="$1"
+	local idx="$(($2 + 1))"
+
+	head -n $idx /sys/class/ieee80211/${phy}/addresses | tail -n1
+}
+
+mac80211_generate_mac() {
+	local phy="$1"
+	local id="${macidx:-0}"
+
+	wdev_tool "$phy$phy_suffix" get_macaddr id=$id num_global=$num_global_macaddr mbssid=${multiple_bssid:-0} macaddr_base=${macaddr_base}
 }
 
 get_board_phy_name() (
@@ -597,25 +591,16 @@ get_board_phy_name() (
 		local val="$1"
 		local key="$2"
 		local ref_path="$3"
-		local type paths path
 
 		json_select "$key"
-		json_get_type type path
-		if [ "$type" = array ]; then
-			json_get_values paths path
-		else
-			json_get_vars path
-			paths="$path"
-		fi
+		json_get_vars path
 		json_select ..
 
-		for path in $paths; do
-			[ "${ref_path%+*}" = "${path%+*}" ] && fallback_phy=$key
-			[ "$ref_path" = "$path" ] || continue
+		[ "${ref_path%+*}" = "$path" ] && fallback_phy=$key
+		[ "$ref_path" = "$path" ] || return 0
 
-			echo "$key"
-			exit
-		done
+		echo "$key"
+		exit
 	}
 
 	json_load_file /etc/board.json
@@ -640,21 +625,9 @@ rename_board_phy_by_name() (
 	json_load_file /etc/board.json
 	json_select wlan
 	json_select "${phy%.*}" || return 0
+	json_get_vars path
 
-	local type paths path
-	json_get_type type path
-	if [ "$type" = array ]; then
-		json_get_values paths path
-	else
-		json_get_vars path
-		paths="$path"
-	fi
-
-	local prev_phy=
-	for path in $paths; do
-		prev_phy="$(iwinfo nl80211 phyname "path=$path${suffix:++$suffix}")"
-		[ -n "$prev_phy" ] && break
-	done
+	prev_phy="$(iwinfo nl80211 phyname "path=$path${suffix:++$suffix}")"
 	[ -n "$prev_phy" ] || return 0
 
 	[ "$prev_phy" = "$phy" ] && return 0
@@ -721,6 +694,8 @@ mac80211_prepare_vif() {
 	default_macaddr=
 	random_macaddr=
 	if [ -z "$macaddr" ]; then
+		macaddr="$(mac80211_generate_mac $phy)"
+		macidx="$(($macidx + 1))"
 		default_macaddr=1
 	elif [ "$macaddr" = 'random' ]; then
 		macaddr="$(macaddr_random)"
@@ -786,14 +761,6 @@ mac80211_prepare_iw_htmode() {
 						;;
 					esac
 				;;
-				6g)
-					if [ "$auto_channel" -eq 0 ] && [ "$channel" -gt 0 ]; then
-						local c_base=$(( (($channel - 1) / 8) * 8 + 1 ))
-						iw_htmode="40 $(( 5950 + ($c_base + 2) * 5 ))"
-					else
-						iw_htmode=""
-					fi
-				;;
 				*)
 					case "$(( ($channel / 4) % 2 ))" in
 						1) iw_htmode="HT40+" ;;
@@ -801,7 +768,7 @@ mac80211_prepare_iw_htmode() {
 					esac
 				;;
 			esac
-			[ "$auto_channel" -gt 0 ] && [ "$band" != "6g" ] && iw_htmode="HT40+"
+			[ "$auto_channel" -gt 0 ] && iw_htmode="HT40+"
 		;;
 		VHT80|HE80|EHT80)
 			iw_htmode="80MHz"
@@ -1051,7 +1018,7 @@ mac80211_setup_supplicant() {
 	wpa_supplicant_prepare_interface "$ifname" nl80211 || return 1
 
 	if [ "$mode" = "sta" ]; then
-		wpa_supplicant_add_network "$ifname" "" "$htmode"
+		wpa_supplicant_add_network "$ifname"
 	else
 		wpa_supplicant_add_network "$ifname" "$freq" "$htmode" "$hostapd_noscan"
 	fi
@@ -1205,6 +1172,7 @@ drv_mac80211_setup() {
 
 	hostapd_conf_file="/var/run/hostapd-$phy$vif_phy_suffix.conf"
 
+	macidx=0
 	staidx=0
 
 	[ -n "$chanbw" ] && {
@@ -1259,8 +1227,7 @@ drv_mac80211_setup() {
 	[ -x /usr/sbin/wpa_supplicant ] && wpa_supplicant_start "$phy" "$radio"
 
 	json_set_namespace wdev_uc prev
-	wdev_tool "$phy$phy_suffix" set_config "$(json_dump)" \
-		num_global=$num_global_macaddr macaddr_base=$macaddr_base $active_ifnames
+	wdev_tool "$phy$phy_suffix" set_config "$(json_dump)" $active_ifnames
 	json_set_namespace "$prev"
 
 	[ -z "$phy_suffix" ] && {

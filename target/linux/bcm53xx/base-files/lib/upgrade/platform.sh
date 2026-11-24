@@ -53,7 +53,6 @@ platform_expected_image() {
 		"luxul,xwr-3150-v1")	echo "lxl XWR-3150"; return;;
 		"netgear,r6250-v1")	echo "chk U12H245T00_NETGEAR"; return;;
 		"netgear,r6300-v2")	echo "chk U12H240T00_NETGEAR"; return;;
-		"netgear,r6400-v1")	echo "chk U12H332T00_NETGEAR"; return;;
 		"netgear,r7000")	echo "chk U12H270T00_NETGEAR"; return;;
 		"netgear,r7900")	echo "chk U12H315T30_NETGEAR"; return;;
 		"netgear,r8000")	echo "chk U12H315T00_NETGEAR"; return;;
@@ -238,7 +237,7 @@ platform_do_upgrade_nand_trx() {
 	}
 
 	# Firmwares without UBI image should be flashed "normally"
-	local root_type=$(identify "$dir/root" "cat")
+	local root_type=$(identify $dir/root)
 	[ "$root_type" != "ubi" ] && {
 		echo "Provided firmware doesn't use UBI for rootfs."
 		return

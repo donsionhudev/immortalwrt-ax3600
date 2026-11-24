@@ -122,7 +122,6 @@
 				partition@400000 {
 					label = "rootfs";
 					reg = <0x440000 0x1b20000>;
-					linux,rootfs;
 				};
 			};
 
@@ -191,10 +190,6 @@
 			label = "lan";
 		};
 	};
-};
-
-&usb_phy {
-	status = "disabled";
 };
 
 &xhci {

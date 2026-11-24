@@ -136,29 +136,25 @@
 
 &usb {
 	status = "okay";
+};
 
-	/delete-node/ port@1;
+&hub_port {
+	#address-cells = <1>;
+	#size-cells = <0>;
 
-	hub@1 {
+	port@1 {
+		compatible = "usb-a-connector";
 		reg = <1>;
+	};
 
-		#address-cells = <1>;
-		#size-cells = <0>;
+	port@3 {
+		label = "RS-232 serial adapter";
+		reg = <3>;
+	};
 
-		port@1 {
-			compatible = "usb-a-connector";
-			reg = <1>;
-		};
-
-		port@3 {
-			label = "RS-232 serial adapter";
-			reg = <3>;
-		};
-
-		port@4 {
-			label = "internal wwan modem";
-			reg = <4>;
-		};
+	port@4 {
+		label = "internal wwan modem";
+		reg = <4>;
 	};
 };
 

@@ -114,8 +114,6 @@ define Build/cfe-jffs2
 	$(STAGING_DIR_HOST)/bin/mkfs.jffs2 \
 		--big-endian \
 		--pad \
-		--squash-uids \
-		--squash-perms \
 		--no-cleanmarkers \
 		--eraseblock=$(patsubst %k,%KiB,$(BLOCKSIZE)) \
 		--root=$(1) \
@@ -359,7 +357,7 @@ define Device/sercomm-nand
   $(Device/bcm63xx-nand)
   IMAGES := factory.img sysupgrade.bin
   IMAGE/factory.img := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi |\
-    cfe-sercomm-part | libdeflate-gzip | cfe-sercomm-load | cfe-sercomm-crypto
+    cfe-sercomm-part | gzip | cfe-sercomm-load | cfe-sercomm-crypto
   SERCOMM_FSVER :=
   SERCOMM_HWVER :=
   SERCOMM_SWVER :=
@@ -368,7 +366,6 @@ endef
 ### Package helpers ###
 ATH9K_PACKAGES := kmod-ath9k kmod-owl-loader wpad-basic-openssl
 B43_PACKAGES := kmod-b43 wpad-basic-openssl
-RT28_PACKAGES := kmod-rt2800-pci wpad-basic-openssl
 USB1_PACKAGES := kmod-usb-ohci kmod-usb-ledtrig-usbport
 USB2_PACKAGES := $(USB1_PACKAGES) kmod-usb2
 

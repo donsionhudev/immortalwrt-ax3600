@@ -6,7 +6,7 @@
 	usb_phy: usb-phy {
 		compatible = "qca,ar7200-usb-phy";
 
-		reset-names = "phy", "usb-ohci-dll";
+		reset-names = "usb-phy", "usb-ohci-dll";
 		resets = <&rst 4>, <&rst 3>;
 
 		#phy-cells = <0>;
@@ -27,8 +27,9 @@
 		interrupts = <3>;
 
 		resets = <&rst 5>;
+		reset-names = "usb-host";
 
-		phy-names = "usb";
+		phy-names = "usb-phy";
 		phys = <&usb_phy>;
 
 		status = "disabled";
@@ -90,7 +91,6 @@
 	reset-names = "mac";
 
 	phy-mode = "gmii";
-	builtin-switch;
 
 	fixed-link {
 		speed = <1000>;

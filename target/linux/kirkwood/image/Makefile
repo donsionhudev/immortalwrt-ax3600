@@ -37,7 +37,6 @@ define Build/ctera-firmware
 		> $@.tmp/trailer
 
 	tar $(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
-		--numeric-owner --owner=0 --group=0 \
 		-H gnu -C $@.tmp -cf $@.tar header kernel trailer
 
 	# Prepare header and trailer file for fake romdisk
@@ -59,7 +58,6 @@ define Build/ctera-firmware
 		> $@.tmp/trailer
 
 	tar $(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
-		--numeric-owner --owner=0 --group=0 \
 		-H gnu -C $@.tmp -rf $@.tar header romdisk trailer
 
 	mv $@.tar $@
@@ -99,9 +97,11 @@ define Device/kernel-size-migration-linksys
     2. Run folowing commands in console (ssh or serial): \n$\
     \t fw_printenv \n$\
     \t fw_setenv nandboot \
-    "$$$$(fw_printenv -n nandboot | sed 's/0x300000/0x400000/g')"\n$\
+    "$$$$(fw_printenv nandboot | awk -F= '{sub(/^nandboot=/, "");print}' \
+    | sed 's/0x300000/0x400000/g')"\n$\
     \t fw_setenv altnandboot \
-    "$$$$(fw_printenv -n altnandboot | sed 's/0x300000/0x400000/g')"\n$\
+    "$$$$(fw_printenv altnandboot | awk -F= '{sub(/^altnandboot=/, "");print}' \
+    | sed 's/0x300000/0x400000/g')"\n$\
     3. Test if envs are ok by 'fw_printenv'. \
     It should be the same except last argument of\
     'nand read.e' in 'nandboot' and 'altnandboot'.\n$\
@@ -132,8 +132,7 @@ define Device/checkpoint_l-50
   DEVICE_VENDOR := Check Point
   DEVICE_MODEL := L-50
   DEVICE_PACKAGES := kmod-ath9k kmod-gpio-button-hotplug kmod-mvsdio \
-	kmod-rtc-s35390a kmod-usb-ledtrig-usbport wpad-openssl \
-	kmod-dsa-mv88e6xxx
+	kmod-rtc-s35390a kmod-usb-ledtrig-usbport wpad-openssl
   IMAGES := sysupgrade.bin
 endef
 TARGET_DEVICES += checkpoint_l-50
@@ -189,25 +188,12 @@ define Device/dlink_dns320l
 endef
 TARGET_DEVICES += dlink_dns320l
 
-define Device/dlink_dns-325-a1
-  DEVICE_VENDOR := D-Link
-  DEVICE_MODEL := DNS-325
-  DEVICE_VARIANT := A1
-  DEVICE_DTS := kirkwood-dns325
-  DEVICE_PACKAGES := kmod-ata-marvell-sata kmod-hwmon-lm75 kmod-hwmon-gpiofan \
-	kmod-thermal kmod-usb-ledtrig-usbport kmod-gpio-button-hotplug block-mount \
-  mdadm kmod-md-linear kmod-usb-storage kmod-fs-ext4 e2fsprogs partx-utils \
-  fdisk kmod-rtc-mv
-endef
-TARGET_DEVICES += dlink_dns-325-a1
-
 define Device/endian_4i-edge-200
   DEVICE_VENDOR := Endian
   DEVICE_MODEL := 4i Edge 200
   DEVICE_ALT0_VENDOR := Endian
   DEVICE_ALT0_MODEL := UTM Mini Firewall
-  DEVICE_PACKAGES := kmod-ath9k kmod-mvsdio wpad-openssl kmod-rtc-mv \
-	kmod-dsa-mv88e6xxx
+  DEVICE_PACKAGES := kmod-ath9k kmod-mvsdio wpad-openssl kmod-rtc-mv
   KERNEL_SIZE := 4096k
   IMAGES := sysupgrade.bin
 endef
@@ -252,7 +238,7 @@ define Device/iom_ix4-200d
   $(Device/kernel-size-migration-iomega)
   DEVICE_VENDOR := Iomega
   DEVICE_MODEL := StorCenter ix4-200d
-  DEVICE_PACKAGES := kmod-ata-ahci kmod-ata-marvell-sata kmod-fs-ext4 \
+  DEVICE_PACKAGES := kmod-ata-marvell-sata kmod-fs-ext4 \
 	kmod-gpio-button-hotplug kmod-gpio-nxp-74hc164 \
 	kmod-hwmon-adt7475 kmod-mvsdio kmod-spi-gpio kmod-rtc-mv
   PAGESIZE := 512
@@ -287,7 +273,7 @@ define Device/linksys
   $(Device/kernel-size-migration-linksys)
   DEVICE_VENDOR := Linksys
   DEVICE_PACKAGES := kmod-mwl8k wpad-openssl kmod-gpio-button-hotplug \
-	kmod-rtc-mv kmod-dsa-mv88e6xxx
+	kmod-rtc-mv
   KERNEL_IN_UBI :=
   KERNEL_SIZE := 4096k
   UBINIZE_OPTS := -E 5

@@ -85,6 +85,15 @@
 			gpios = <&gpio 45 GPIO_ACTIVE_LOW>;
 		};
 	};
+
+	reg_usb_vbus: regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "usb_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
 };
 
 &spi0 {
@@ -164,7 +173,7 @@
 };
 
 &pcie0 {
-	wifi@0,0 {
+	mt76@0,0 {
 		compatible = "mediatek,mt76";
 		reg = <0x0000 0 0 0 0>;
 		nvmem-cells = <&eeprom_radio_0>, <&macaddr_config_8 0>;
@@ -174,7 +183,7 @@
 };
 
 &pcie1 {
-	wifi@0,0 {
+	mt76@0,0 {
 		compatible = "mediatek,mt76";
 		reg = <0x0000 0 0 0 0>;
 		nvmem-cells = <&eeprom_radio_8000>, <&macaddr_config_8 (-1)>;
@@ -199,12 +208,6 @@
 
 &ethphy0 {
 	/delete-property/ interrupts;
-};
-
-&reg_vbus {
-	/delete-property/ regulator-always-on;
-	gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
-	enable-active-high;
 };
 
 &switch0 {
@@ -236,4 +239,8 @@
 		groups = "i2c", "uart2", "uart3", "jtag", "wdt", "sdhci";
 		function = "gpio";
 	};
+};
+
+&xhci {
+	vbus-supply = <&reg_usb_vbus>;
 };

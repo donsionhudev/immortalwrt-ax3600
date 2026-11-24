@@ -90,6 +90,8 @@
 				reg = <0xff0000 0x10000>;
 				read-only;
 
+				compatible = "nvmem-cells";
+
 				nvmem-layout {
 					compatible = "fixed-layout";
 					#address-cells = <1>;
@@ -132,9 +134,9 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
-		compatible = "qca,ar8327";
-		reg = <0x10>;
+	phy0: ethernet-phy@0 {
+		reg = <0>;
+		phy-mode = "sgmii";
 		qca,mib-poll-interval = <500>;
 
 		qca,ar8327-initvals = <
@@ -155,11 +157,7 @@
 	pll-data = <0x03000101 0x00000101 0x00001919>;
 
 	phy-mode = "sgmii";
-
-	fixed-link {
-		speed = <1000>;
-		full-duplex;
-	};
+	phy-handle = <&phy0>;
 };
 
 &wmac {

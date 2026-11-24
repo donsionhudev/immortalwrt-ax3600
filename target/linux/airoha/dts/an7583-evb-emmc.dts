@@ -79,10 +79,6 @@
 	gpio-ranges = <&an7583_pinctrl 0 2 53>;
 
 	mdio0_pins: mdio0-pins {
-		mux {
-			function = "mdio";
-			groups = "mdio";
-		};
 		conf {
 			pins = "mdio_0";
 			output-high;
@@ -205,9 +201,8 @@
 		reg = <0xf>;
 
 		reset-gpios = <&an7583_pinctrl 28 GPIO_ACTIVE_LOW>;
-		/* Hold reset for 1 second and wait 100 ms before probing EN8811H. */
-		reset-assert-us = <1000000>;
-		reset-deassert-us = <100000>;
+		reset-assert-us = <10000>;
+		reset-deassert-us = <20000>;
 
 		leds {
 			#address-cells = <1>;
@@ -257,11 +252,6 @@
 	status = "okay";
 };
 
-&gsw_port1 {
-	status = "okay";
-	label = "lan1";
-};
-
 &gsw_phy1 {
 	pinctrl-names = "gbe-led";
 	pinctrl-0 = <&gswp1_led0_pins>;
@@ -271,11 +261,6 @@
 &gsw_phy1_led0 {
 	status = "okay";
 	active-low;
-};
-
-&gsw_port2 {
-	status = "okay";
-	label = "lan2";
 };
 
 &gsw_phy2 {
@@ -289,11 +274,6 @@
 	active-low;
 };
 
-&gsw_port3 {
-	status = "okay";
-	label = "lan3";
-};
-
 &gsw_phy3 {
 	pinctrl-names = "gbe-led";
 	pinctrl-0 = <&gswp3_led0_pins>;
@@ -303,11 +283,6 @@
 &gsw_phy3_led0 {
 	status = "okay";
 	active-low;
-};
-
-&gsw_port4 {
-	status = "okay";
-	label = "lan4";
 };
 
 &gsw_phy4 {

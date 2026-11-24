@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=usbgadget
-PKG_RELEASE:=2
+PKG_RELEASE:=1
 
 PKG_LICENSE:=BSD-2-Clause
 
@@ -12,12 +12,8 @@ include $(INCLUDE_DIR)/package.mk
 define Package/$(PKG_NAME)
   SECTION:=utils
   CATEGORY:=Utilities
-  DEPENDS:=@USB_GADGET_SUPPORT +kmod-usb-gadget +kmod-fs-configfs +kmod-usb-lib-composite
+  DEPENDS:=@USB_GADGET_SUPPORT +kmod-usb-gadget +kmod-usb-lib-composite
   TITLE:=init script to create USB gadgets
-endef
-
-define Package/$(PKG_NAME)/conffiles
-/etc/config/usbgadget
 endef
 
 define Build/Compile
@@ -39,7 +35,7 @@ define GadgetPreset
     SECTION:=utils
     CATEGORY:=Utilities
     TITLE+= $(2) gadget preset
-    DEPENDS+= +usbgadget $(3)
+    DEPENDS+= $(3)
   endef
 
   define Package/$(PKG_NAME)-$(1)/description

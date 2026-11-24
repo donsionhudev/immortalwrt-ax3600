@@ -171,9 +171,8 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
-		compatible = "qca,ar8327";
-		reg = <0x10>;
+	phy0: ethernet-phy@0 {
+		reg = <0>;
 		qca,ar8327-initvals = <
 			0x04 0x87600000 /* PORT0: RGMII, MAC0/6 exchage, tx_delay 01, rx_delay 10 */
 			0x0c 0x00000080 /* PORT6: SGMII */
@@ -195,10 +194,7 @@
 	nvmem-cells = <&macaddr_art_0>;
 	nvmem-cell-names = "mac-address";
 
-	fixed-link {
-		speed = <1000>;
-		full-duplex;
-	};
+	phy-handle = <&phy0>;
 };
 
 &eth1 {
@@ -212,10 +208,6 @@
 		speed = <1000>;
 		full-duplex;
 	};
-};
-
-&wdt {
-	status = "disabled";
 };
 
 &wmac {

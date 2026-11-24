@@ -116,9 +116,9 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
+	switch0@1f {
 		compatible = "qca,ar8236";
-		reg = <0x10>;
+		reg = <0x1f>;
 	};
 };
 

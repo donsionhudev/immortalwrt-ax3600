@@ -14,6 +14,5 @@
 	[ "if",
 		[ "eq", "SUBSYSTEM", "button" ],
 		[ "exec", "/etc/rc.button/failsafe" ]
-	],
-	[ "include", "/etc/hotplug-preinit.json.d/*.json" ]
+	]
 ]

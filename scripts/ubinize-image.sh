@@ -3,7 +3,6 @@
 . $TOPDIR/scripts/functions.sh
 
 part=""
-parts_after=""
 ubootenv=""
 ubinize_param=""
 kernel=""
@@ -35,10 +34,21 @@ ubivol() {
 	fi
 }
 
-ubiparts() {
-	local part name prev image size voltype
+ubilayout() {
+	local vol_id=0
+	local rootsize
+	local autoresize
+	local rootfs_type
+	local voltype
 
-	for part in $1; do
+	rootfs_type="$( get_fs_type "$2" )"
+	if [ "$1" = "ubootenv" ]; then
+		ubivol $vol_id ubootenv
+		vol_id=$(( vol_id + 1 ))
+		ubivol $vol_id ubootenv2
+		vol_id=$(( vol_id + 1 ))
+	fi
+	for part in $parts; do
 		name="${part%%=*}"
 		prev="$part"
 		part="${part#*=}"
@@ -55,34 +65,15 @@ ubiparts() {
 		[ "$prev" = "$part" ] && part=
 
 		size="$part"
-		if [ -n "$image" ]; then
-			if [ -z "$size" ]; then
-				size="$( round_up "$( stat -c%s "$image" )" 1024 )"
-			else
-				size="${size}MiB"
-			fi
+		if [ -z "$size" ]; then
+			size="$( round_up "$( stat -c%s "$image" )" 1024 )"
+		else
+			size="${size}MiB"
 		fi
 
 		ubivol $vol_id "$name" "$image" "" "${size}" "$voltype"
 		vol_id=$(( vol_id + 1 ))
 	done
-}
-
-ubilayout() {
-	local vol_id=0
-	local rootsize
-	local autoresize
-	local rootfs_type
-	local voltype
-
-	rootfs_type="$( get_fs_type "$2" )"
-	if [ "$1" = "ubootenv" ]; then
-		ubivol $vol_id ubootenv
-		vol_id=$(( vol_id + 1 ))
-		ubivol $vol_id ubootenv2
-		vol_id=$(( vol_id + 1 ))
-	fi
-	ubiparts "$parts"
 	if [ "$3" ]; then
 		ubivol $vol_id kernel "$3"
 		vol_id=$(( vol_id + 1 ))
@@ -102,14 +93,8 @@ ubilayout() {
 		ubivol $vol_id rootfs "$2" "$autoresize" "$rootsize"
 
 		vol_id=$(( vol_id + 1 ))
-		if [ "$rootfs_type" != "ubifs" ]; then
-			ubivol $vol_id rootfs_data "" 1
-			vol_id=$(( vol_id + 1 ))
-		fi
+		[ "$rootfs_type" = "ubifs" ] || ubivol $vol_id rootfs_data "" 1
 	fi
-
-	# Preserve kernel and rootfs volume IDs before adding persistent data volumes.
-	ubiparts "$parts_after"
 }
 
 set_ubinize_seq() {
@@ -139,12 +124,6 @@ while [ "$1" ]; do
 		;;
 	"--part")
 		parts="$parts $2"
-		shift
-		shift
-		continue
-		;;
-	"--part-after")
-		parts_after="$parts_after $2"
 		shift
 		shift
 		continue

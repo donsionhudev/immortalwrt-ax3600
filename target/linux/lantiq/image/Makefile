@@ -81,7 +81,7 @@ endef
 
 DEVICE_VARS += SIGNATURE MAGIC CRC32_POLY LOADER_FLASH_OFFS
 
-DTS_DIR := ../dts
+DTS_DIR := $(DTS_DIR)/lantiq
 
 # Shared device definition: applies to every defined device
 define Device/Default

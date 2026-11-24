@@ -217,15 +217,6 @@ define Device/comfast_cf-wr800n
 endef
 TARGET_DEVICES += comfast_cf-wr800n
 
-define Device/devolo_rac
-  SOC := mt7620a
-  IMAGE_SIZE := 7872k
-  DEVICE_VENDOR := devolo
-  DEVICE_MODEL := WiFi Repeater ac
-  DEVICE_PACKAGES := kmod-mt76x2 kmod-phy-realtek
-endef
-TARGET_DEVICES += devolo_rac
-
 define Device/dlink_dch-m225
   $(Device/seama)
   SOC := mt7620a
@@ -233,7 +224,7 @@ define Device/dlink_dch-m225
   IMAGE_SIZE := 6848k
   DEVICE_VENDOR := D-Link
   DEVICE_MODEL := DCH-M225
-  DEVICE_PACKAGES := kmod-sound-core kmod-sound-mt7620 kmod-i2c-ralink audio-support
+  DEVICE_PACKAGES := kmod-sound-core kmod-sound-mt7620 kmod-i2c-ralink
   SUPPORTED_DEVICES += dch-m225
 endef
 TARGET_DEVICES += dlink_dch-m225
@@ -1063,7 +1054,7 @@ define Device/planex_cs-qr10
   DEVICE_VENDOR := Planex
   DEVICE_MODEL := CS-QR10
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-sound-core \
-	kmod-sound-mt7620 kmod-i2c-ralink kmod-mmc-mtk audio-support
+	kmod-sound-mt7620 kmod-i2c-ralink kmod-mmc-mtk
   SUPPORTED_DEVICES += cs-qr10
 endef
 TARGET_DEVICES += planex_cs-qr10
@@ -1233,6 +1224,7 @@ define Device/tplink_archer-c20i
   DEVICE_MODEL := Archer C20i
   DEVICE_PACKAGES := kmod-mt76x0e kmod-usb2 kmod-usb-ohci
   SUPPORTED_DEVICES += c20i
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-c20i
 
@@ -1250,6 +1242,7 @@ define Device/tplink_archer-c20-v1
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := kmod-mt76x0e kmod-usb2 kmod-usb-ohci \
 	kmod-usb-ledtrig-usbport
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-c20-v1
 
@@ -1266,6 +1259,7 @@ define Device/tplink_archer-c2-v1
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := kmod-mt76x0e kmod-usb2 kmod-usb-ohci \
 	kmod-usb-ledtrig-usbport kmod-switch-rtl8367b
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-c2-v1
 
@@ -1301,6 +1295,7 @@ define Device/tplink_archer-c50-v1
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := kmod-mt76x2 kmod-usb2 kmod-usb-ohci
   SUPPORTED_DEVICES += c50
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-c50-v1
 
@@ -1316,6 +1311,7 @@ define Device/tplink_archer-mr200
 	kmod-usb-serial-option adb-enablemodem
   DEVICE_MODEL := Archer MR200
   SUPPORTED_DEVICES += mr200
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-mr200
 
@@ -1367,16 +1363,6 @@ define Device/trendnet_tew-810dr
   IMAGE_SIZE := 6720k
 endef
 TARGET_DEVICES += trendnet_tew-810dr
-
-define Device/trendnet_tha103ac
-  SOC := mt7620a
-  DEVICE_PACKAGES := kmod-mt76x0e rssileds
-  DEVICE_VENDOR := TRENDnet
-  DEVICE_MODEL := THA-103AC
-  IMAGE_SIZE := 7872k
-  SUPPORTED_DEVICES += mt7620a_mt7610e
-endef
-TARGET_DEVICES += trendnet_tha103ac
 
 define Device/vonets_var11n-300
   SOC := mt7620n
@@ -1509,7 +1495,7 @@ define Device/yukai_bocco
   IMAGE_SIZE := 7872k
   DEVICE_VENDOR := YUKAI Engineering
   DEVICE_MODEL := BOCCO
-  DEVICE_PACKAGES := kmod-sound-core kmod-sound-mt7620 kmod-i2c-ralink audio-support
+  DEVICE_PACKAGES := kmod-sound-core kmod-sound-mt7620 kmod-i2c-ralink
   SUPPORTED_DEVICES += bocco
 endef
 TARGET_DEVICES += yukai_bocco

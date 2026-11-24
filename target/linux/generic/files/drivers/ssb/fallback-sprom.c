@@ -16,7 +16,6 @@
 #include <linux/of_net.h>
 #include <linux/of_platform.h>
 #include <linux/ssb/ssb.h>
-#include "fallback-sprom.h"
 
 #define SSB_FBS_MAX_SIZE 440
 
@@ -690,7 +689,6 @@ static int ssb_fbs_probe(struct platform_device *pdev)
 	struct ssb_fbs *priv;
 	unsigned long flags;
 	u8 mac[ETH_ALEN];
-	int ret;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
 	if (!priv)
@@ -703,10 +701,7 @@ static int ssb_fbs_probe(struct platform_device *pdev)
 	of_property_read_u32(node, "pci-bus", &priv->pci_bus);
 	of_property_read_u32(node, "pci-dev", &priv->pci_dev);
 
-	ret = of_get_mac_address(node, mac);
-	if (ret == -EPROBE_DEFER)
-		return ret;
-
+	of_get_mac_address(node, mac);
 	if (is_valid_ether_addr(mac)) {
 		dev_info(dev, "mtd mac %pM\n", mac);
 	} else {

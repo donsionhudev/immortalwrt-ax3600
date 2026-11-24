@@ -7,10 +7,10 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_VERSION:=2.14
+PKG_VERSION:=2.10
 PKG_RELEASE:=1
 
-PKG_HASH:=14fb6101f2ef424ec84c0296c3cbdeb7f79b22f5fbb46529bea0e362d0fab0d5
+PKG_HASH:=88215a62291b9ba87da8e50b077741103cdc08fb6c9e1ebd34dfaace746d3201
 
 PKG_LICENSE:=BSD-3-Clause
 PKG_LICENSE_FILES:=license.md
@@ -24,11 +24,6 @@ include $(INCLUDE_DIR)/package.mk
 define Trusted-Firmware-A/Default
 	BUILD_TARGET:=sunxi
 	BUILD_SUBTARGET:=cortexa53
-endef
-
-define Trusted-Firmware-A/sunxi-a523
-	NAME:=Allwinner A523
-	PLAT:=sun55i_a523
 endef
 
 define Trusted-Firmware-A/sunxi-a64
@@ -47,7 +42,6 @@ define Trusted-Firmware-A/sunxi-h616
 endef
 
 TFA_TARGETS:= \
-	sunxi-a523 \
 	sunxi-a64 \
 	sunxi-h6 \
 	sunxi-h616

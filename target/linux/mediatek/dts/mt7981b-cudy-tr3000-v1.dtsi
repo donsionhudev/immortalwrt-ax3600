@@ -2,7 +2,7 @@
 
 /dts-v1/;
 #include <dt-bindings/leds/common.h>
-#include "mt7981b.dtsi"
+#include "mt7981.dtsi"
 
 / {
 	aliases {
@@ -113,6 +113,8 @@
 	status = "okay";
 
 	spi_nand: flash@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
 		compatible = "spi-nand";
 		reg = <0>;
 
@@ -137,7 +139,7 @@
 				read-only;
 			};
 
-			partition@180000 {
+			factory: partition@180000 {
 				label = "Factory";
 				reg = <0x180000 0x0200000>;
 				read-only;
@@ -205,7 +207,6 @@
 
 &wifi {
 	status = "okay";
-
 	nvmem-cells = <&eeprom_factory_0>;
 	nvmem-cell-names = "eeprom";
 };

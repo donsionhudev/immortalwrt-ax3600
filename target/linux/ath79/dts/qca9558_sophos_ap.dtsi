@@ -191,3 +191,7 @@
 	nvmem-cells = <&cal_art_1000>;
 	nvmem-cell-names = "calibration";
 };
+
+&usb0 {
+	vbus-supply = <&reg_usb_vbus>;
+};

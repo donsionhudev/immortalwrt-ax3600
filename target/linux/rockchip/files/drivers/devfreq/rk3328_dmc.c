@@ -811,7 +811,7 @@ err_free_opp:
 	return ret;
 }
 
-static void rk3328_dmcfreq_remove(struct platform_device *pdev)
+static int rk3328_dmcfreq_remove(struct platform_device *pdev)
 {
 	struct rk3328_dmcfreq *dmcfreq = dev_get_drvdata(&pdev->dev);
 
@@ -820,6 +820,8 @@ static void rk3328_dmcfreq_remove(struct platform_device *pdev)
 	 */
 	devm_devfreq_unregister_opp_notifier(dmcfreq->dev, dmcfreq->devfreq);
 	dev_pm_opp_of_remove_table(dmcfreq->dev);
+
+	return 0;
 }
 
 static const struct of_device_id rk3328dmc_devfreq_of_match[] = {

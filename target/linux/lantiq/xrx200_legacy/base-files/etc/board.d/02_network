@@ -44,13 +44,16 @@ lantiq_setup_macs()
 
 	case "$board" in
 	alphanetworks,asl56026)
+		lan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
 		wan_mac=$(mtd_get_mac_ascii u-boot-env wanmac)
 		;;
 	arcadyan,vg3503j)
-		wan_mac=$(macaddr_add "$(mtd_get_mac_ascii u-boot-env ethaddr)" 1)
+		lan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
+		wan_mac=$(macaddr_add "$lan_mac" 1)
 		;;
 	netgear,dm200)
-		wan_mac=$(macaddr_add "$(mtd_get_mac_binary ART 0x0)" 1)
+		lan_mac=$(mtd_get_mac_binary ART 0x0)
+		wan_mac=$(macaddr_add "$lan_mac" 1)
 		;;
 	tplink,tdw8970|\
 	tplink,tdw8980)

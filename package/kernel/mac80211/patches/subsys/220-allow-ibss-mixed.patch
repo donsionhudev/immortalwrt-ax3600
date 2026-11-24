@@ -10,16 +10,13 @@ ath10k-ct starting with version 5.2 allows the combination of
 NL80211_IFTYPE_ADHOC and beacon_int_min_gcd in ath10k_10x_ct_if_comb
 which triggers this warning. Ben told me that this is not a big problem
 and we should ignore this.
-
-[viking.yfy@qq.com: complete imported patch metadata]
-Signed-off-by: VIKINGYFY <viking.yfy@qq.com>
 ---
  net/wireless/core.c | 15 ---------------
  1 file changed, 15 deletions(-)
 
 --- a/net/wireless/core.c
 +++ b/net/wireless/core.c
-@@ -778,21 +778,6 @@ int wiphy_verify_iface_combinations(stru
+@@ -674,21 +674,6 @@ int wiphy_verify_iface_combinations(stru
  				    c->limits[j].max > 1))
  				return -EINVAL;
  

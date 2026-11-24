@@ -1,9 +1,9 @@
 include $(TOPDIR)/rules.mk
 
-PKG_VERSION:=2025.04
+PKG_VERSION:=2023.04
 PKG_RELEASE:=1
 
-PKG_HASH:=439d3bef296effd54130be6a731c5b118be7fddd7fcc663ccbc5fb18294d8718
+PKG_HASH:=e31cac91545ff41b71cec5d8c22afd695645cd6e2a442ccdacacd60534069341
 
 include $(INCLUDE_DIR)/u-boot.mk
 include $(INCLUDE_DIR)/package.mk
@@ -30,10 +30,7 @@ UBOOT_TARGETS := \
 	qemu_armv7 \
 	qemu_armv8
 
-# mkeficapsule host tool is disabled
-# due to a host-side GnuTLS dependency
 UBOOT_CUSTOMIZE_CONFIG := \
-	--enable CMD_EFIDEBUG \
-	--disable TOOLS_MKEFICAPSULE
+	--enable CMD_EFIDEBUG
 
 $(eval $(call BuildPackage/U-Boot))

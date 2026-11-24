@@ -47,27 +47,24 @@
 			};
 
 			partition@100000 {
+				compatible = "u-boot,env";
 				label = "u-boot-env";
 				reg = <0x00100000 0x0004000>;
 				read-only;
 
-				nvmem-layout {
-					compatible = "u-boot,env";
+				ethaddr {
+				};
 
-					ethaddr {
-					};
+				bootcmd {
+				};
 
-					bootcmd {
-					};
+				serno {
+				};
 
-					serno {
-					};
+				ProductID {
+				};
 
-					ProductID {
-					};
-
-					HardwareVer {
-					};
+				HardwareVer {
 				};
 			};
 

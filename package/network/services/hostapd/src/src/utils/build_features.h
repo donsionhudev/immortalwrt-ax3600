@@ -63,10 +63,6 @@ static inline int has_feature(const char *feat)
 	if (!strcmp(feat, "mesh"))
 		return 1;
 #endif
-#ifdef CONFIG_DPP
-	if (!strcmp(feat, "dpp"))
-		return 1;
-#endif
 	return 0;
 }
 

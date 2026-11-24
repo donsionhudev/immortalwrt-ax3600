@@ -56,13 +56,10 @@
 				read-only;
 			};
 
-			partition@40000 {
+			bdcfg: partition@40000 {
+				compatible = "u-boot,env";
 				label = "bdcfg";
 				reg = <0x040000 0x010000>;
-
-				bdcfg: nvmem-layout {
-					compatible = "u-boot,env";
-				};
 			};
 
 			partition@50000 {
@@ -128,9 +125,9 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
-		compatible = "qca,ar8327";
-		reg = <0x10>;
+	phy0: ethernet-phy@0 {
+		reg = <0>;
+		phy-mode = "sgmii";
 		qca,mib-poll-interval = <500>;
 
 		reset-gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
@@ -153,11 +150,7 @@
 	pll-data = <0x03000101 0x00000101 0x00001919>;
 
 	phy-mode = "sgmii";
-
-	fixed-link {
-		speed = <1000>;
-		full-duplex;
-	};
+	phy-handle = <&phy0>;
 };
 
 &wmac {

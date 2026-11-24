@@ -65,6 +65,7 @@
 
 	gpio_export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		usb-mode {
 			gpio-export,name = "usb-mode";

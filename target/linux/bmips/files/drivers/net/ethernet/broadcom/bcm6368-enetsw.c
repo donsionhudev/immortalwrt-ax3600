@@ -20,7 +20,6 @@
 #include <linux/pm_domain.h>
 #include <linux/pm_runtime.h>
 #include <linux/reset.h>
-#include <linux/version.h>
 
 /* TODO: Bigger frames may work but we do not trust that they are safe on all
  * platforms so more research is needed, a max frame size of 2048 has been
@@ -324,11 +323,7 @@ static int bcm6368_enetsw_refill_rx(struct net_device *ndev, bool napi_mode)
  */
 static void bcm6368_enetsw_refill_rx_timer(struct timer_list *t)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6,16,0)
 	struct bcm6368_enetsw *priv = from_timer(priv, t, rx_timeout);
-#else
-	struct bcm6368_enetsw *priv = timer_container_of(priv, t, rx_timeout);
-#endif
 	struct net_device *ndev = priv->net_dev;
 
 	spin_lock(&priv->rx_lock);
@@ -866,7 +861,7 @@ static int bcm6368_enetsw_stop(struct net_device *ndev)
 
 	netif_stop_queue(ndev);
 	napi_disable(&priv->napi);
-	timer_delete_sync(&priv->rx_timeout);
+	del_timer_sync(&priv->rx_timeout);
 
 	/* mask all interrupts */
 	dmac_writel(priv, 0, DMAC_IRMASK_REG, priv->rx_chan);
@@ -937,24 +932,6 @@ static int bcm6368_enetsw_probe(struct platform_device *pdev)
 	priv = netdev_priv(ndev);
 	priv->pdev = pdev;
 	priv->net_dev = ndev;
-
-	/*
-	 * Look up the MAC first: an nvmem provider that isn't ready yet makes
-	 * this return -EPROBE_DEFER, which must happen before the power
-	 * domains are attached below, as those aren't released on defer and
-	 * re-attaching them on the next probe fails with -EEXIST.
-	 */
-	ret = of_get_mac_address(node, dev_addr);
-	if (ret == -EPROBE_DEFER)
-		return ret;
-
-	if (is_valid_ether_addr(dev_addr)) {
-		dev_addr_set(ndev, dev_addr);
-		dev_info(dev, "mtd mac %pM\n", dev_addr);
-	} else {
-		eth_hw_addr_random(ndev);
-		dev_info(dev, "random mac\n");
-	}
 
 	priv->num_pms = of_count_phandle_with_args(node, "power-domains",
 						   "#power-domain-cells");
@@ -1027,6 +1004,15 @@ static int bcm6368_enetsw_probe(struct platform_device *pdev)
 	priv->rx_ring_size = ENETSW_DEF_RX_DESC;
 	priv->tx_ring_size = ENETSW_DEF_TX_DESC;
 	priv->copybreak = ENETSW_DEF_CPY_BREAK;
+
+	of_get_mac_address(node, dev_addr);
+	if (is_valid_ether_addr(dev_addr)) {
+		dev_addr_set(ndev, dev_addr);
+		dev_info(dev, "mtd mac %pM\n", dev_addr);
+	} else {
+		eth_hw_addr_random(ndev);
+		dev_info(dev, "random mac\n");
+	}
 
 	priv->rx_buf_size = ALIGN(ENETSW_MAX_FRAME,
 				  ENETSW_DMA_MAXBURST * 4);
@@ -1114,7 +1100,7 @@ out_disable_clk:
 	return ret;
 }
 
-static void bcm6368_enetsw_remove(struct platform_device *pdev)
+static int bcm6368_enetsw_remove(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct net_device *ndev = platform_get_drvdata(pdev);
@@ -1132,6 +1118,8 @@ static void bcm6368_enetsw_remove(struct platform_device *pdev)
 
 	for (i = 0; i < priv->num_clocks; i++)
 		clk_disable_unprepare(priv->clock[i]);
+
+	return 0;
 }
 
 static const struct of_device_id bcm6368_enetsw_of_match[] = {
@@ -1147,7 +1135,7 @@ MODULE_DEVICE_TABLE(of, bcm6368_enetsw_of_match);
 static struct platform_driver bcm6368_enetsw_driver = {
 	.driver = {
 		.name = "bcm6368-enetsw",
-		.of_match_table = bcm6368_enetsw_of_match,
+		.of_match_table = of_match_ptr(bcm6368_enetsw_of_match),
 	},
 	.probe	= bcm6368_enetsw_probe,
 	.remove	= bcm6368_enetsw_remove,

@@ -43,7 +43,7 @@ start_service() {
 	procd_close_instance
 }
 
-service_running() {
+service_started() {
 	ubus -t 10 wait_for bridger
 	[ $? = 0 ] && reload_service
 }

@@ -153,7 +153,7 @@ define Device/tplink_archer-c60-v3
   DEVICE_MODEL := Archer C60
   DEVICE_VARIANT := v3
   TPLINK_BOARD_ID := ARCHER-C60-V3
-  DEVICE_PACKAGES := kmod-ath10k-ct-smallbuffers ath10k-firmware-qca9888-ct ipq-wifi-tplink_archer-c60-v3
+  DEVICE_PACKAGES := kmod-ath10k-ct-smallbuffers ath10k-firmware-qca9888-ct
 endef
 TARGET_DEVICES += tplink_archer-c60-v3
 
@@ -473,7 +473,7 @@ define Device/tplink_eap225-wall-v2
   IMAGE_SIZE := 13824k
   DEVICE_MODEL := EAP225-Wall
   DEVICE_VARIANT := v2
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct ipq-wifi-tplink_eap225-wall-v2
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
   TPLINK_BOARD_ID := EAP225-WALL-V2
 endef
 TARGET_DEVICES += tplink_eap225-wall-v2
@@ -538,6 +538,45 @@ define Device/tplink_re350k-v1
 endef
 TARGET_DEVICES += tplink_re350k-v1
 
+define Device/tplink_rex5x-v1
+  $(Device/tplink-safeloader)
+  SOC := qca9558
+  IMAGE_SIZE := 6016k
+  DEVICE_PACKAGES := kmod-ath10k-ct-smallbuffers ath10k-firmware-qca988x-ct
+  DEFAULT := n
+endef
+
+define Device/tplink_re355-v1
+  $(Device/tplink_rex5x-v1)
+  DEVICE_MODEL := RE355
+  DEVICE_VARIANT := v1
+  TPLINK_BOARD_ID := RE355
+  SUPPORTED_DEVICES += re355
+endef
+TARGET_DEVICES += tplink_re355-v1
+
+define Device/tplink_re450-v1
+  $(Device/tplink_rex5x-v1)
+  DEVICE_MODEL := RE450
+  DEVICE_VARIANT := v1
+  TPLINK_BOARD_ID := RE450
+  SUPPORTED_DEVICES += re450
+endef
+TARGET_DEVICES += tplink_re450-v1
+
+define Device/tplink_re450-v2
+  $(Device/tplink-safeloader)
+  SOC := qca9563
+  IMAGE_SIZE := 6016k
+  DEVICE_MODEL := RE450
+  DEVICE_VARIANT := v2
+  DEVICE_PACKAGES := kmod-ath10k-ct-smallbuffers ath10k-firmware-qca988x-ct
+  TPLINK_BOARD_ID := RE450-V2
+  LOADER_TYPE := elf
+  DEFAULT := n
+endef
+TARGET_DEVICES += tplink_re450-v2
+
 define Device/tplink_re450-v3
   $(Device/tplink-safeloader)
   SOC := qca9563
@@ -581,7 +620,7 @@ define Device/tplink_tl-wa1201-v2
   DEVICE_MODEL := TL-WA1201
   DEVICE_VARIANT := v2
   TPLINK_BOARD_ID := TL-WA1201-V2
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct ipq-wifi-tplink_tl-wa1201-v2
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
 endef
 TARGET_DEVICES += tplink_tl-wa1201-v2
 
@@ -872,6 +911,20 @@ define Device/tplink_tl-wr842n-v3
   SUPPORTED_DEVICES += tl-wr842n-v3
 endef
 TARGET_DEVICES += tplink_tl-wr842n-v3
+
+define Device/tplink_tl-wr902ac-v1
+  $(Device/tplink-safeloader)
+  SOC := qca9531
+  DEVICE_MODEL := TL-WR902AC
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport \
+	kmod-ath10k-ct-smallbuffers ath10k-firmware-qca9887-ct \
+	-swconfig -uboot-envtools
+  TPLINK_BOARD_ID := TL-WR902AC-V1
+  IMAGE_SIZE := 7360k
+  SUPPORTED_DEVICES += tl-wr902ac-v1
+endef
+TARGET_DEVICES += tplink_tl-wr902ac-v1
 
 define Device/tplink_tl-wr941hp-v1
   $(Device/tplink-safeloader)

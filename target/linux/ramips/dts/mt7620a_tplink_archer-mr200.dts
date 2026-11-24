@@ -97,6 +97,7 @@
 
 	gpio_export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		power_usb {
 			gpio-export,name = "power_usb1";
@@ -218,8 +219,7 @@
 };
 
 &pcie0 {
-	wifi@0,0 {
-		compatible = "mediatek,mt76";
+	mt76@0,0 {
 		reg = <0x0000 0 0 0 0>;
 		nvmem-cells = <&eeprom_radio_8000>;
 		nvmem-cell-names = "eeprom";

@@ -9,16 +9,18 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=ppp
-PKG_VERSION:=2.5.4
-PKG_RELEASE:=3
+PKG_VERSION:=2.5.1
+PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://download.samba.org/pub/ppp
-PKG_HASH:=379a630a40d858a1347f6592d671791dde12101697a743ef9900012f3765be31
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/ppp-project/ppp
+PKG_SOURCE_DATE:=2024-09-18
+PKG_SOURCE_VERSION:=d5aeec65752d4a9b3bb46771d0b221c4a4a6539e
+PKG_MIRROR_HASH:=b98125933d8160ff3476b053414e787e65a94948c0ecee53f6261cd403ff4b03
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=BSD-4-Clause
-PKG_CPE_ID:=cpe:/a:point-to-point_protocol_project:point-to-point_protocol
+PKG_CPE_ID:=cpe:/a:samba:ppp
 
 PKG_ASLR_PIE_REGULAR:=1
 PKG_BUILD_DEPENDS:=libpcap
@@ -28,20 +30,17 @@ PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
+CONFIGURE_VARS += \
+	enable_eaptls=no \
+	enable_microsoft_extensions=yes \
+	enable_peap=no
+
 CONFIGURE_ARGS += \
-	--disable-cbcp \
-	--disable-eaptls \
-	--disable-mslanman \
-	--disable-peap \
-	--disable-systemd \
-	--enable-ipv6cp \
-	--enable-microsoft-extensions \
-	--enable-plugins \
-	--with-static-pcap \
-	--without-atm \
-	--without-openssl \
-	--without-pam \
-	--without-pcap
+	with_openssl=no \
+	with_pam=no \
+	with_pcap=no \
+	with_srp=no \
+	with_static_pcap=yes
 
 define Package/ppp/Default
   SECTION:=net
@@ -51,14 +50,14 @@ endef
 
 define Package/ppp
 $(call Package/ppp/Default)
-  DEPENDS:= +USE_GLIBC:libcrypt-compat +kmod-ppp +shellsync +kmod-mppe
+  DEPENDS:=+kmod-ppp +libpthread +shellsync +kmod-mppe
   TITLE:=PPP daemon
   VARIANT:=default
 endef
 
 define Package/ppp-multilink
 $(call Package/ppp/Default)
-  DEPENDS:= +USE_GLIBC:libcrypt-compat +kmod-ppp
+  DEPENDS:=+kmod-ppp
   TITLE:=PPP daemon (with multilink support)
   VARIANT:=multilink
 endef
@@ -79,7 +78,7 @@ endef
 
 define Package/ppp-mod-pppoa
 $(call Package/ppp/Default)
-  DEPENDS:=@(PACKAGE_ppp||PACKAGE_ppp-multilink) +kmod-pppoa
+  DEPENDS:=@(PACKAGE_ppp||PACKAGE_ppp-multilink) +linux-atm +kmod-pppoa
   TITLE:=PPPoA plugin
 endef
 
@@ -186,8 +185,8 @@ not initiate a session. Can be useful to debug pppoe.
 endef
 
 ifeq ($(BUILD_VARIANT),multilink)
-  CONFIGURE_ARGS += \
-	--enable-multilink
+  CONFIGURE_VARS += \
+	enable_multilink=yes
 endif
 
 define Build/InstallDev

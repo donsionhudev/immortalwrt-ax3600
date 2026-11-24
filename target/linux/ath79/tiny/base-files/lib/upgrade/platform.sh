@@ -12,8 +12,6 @@ platform_check_image() {
 	local board=$(board_name)
 
 	case "$board" in
-	nec,wf1200hp|\
-	nec,wf1200hp2|\
 	nec,wg600hp|\
 	nec,wr8750n|\
 	nec,wr9500n)

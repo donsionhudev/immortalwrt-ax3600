@@ -70,8 +70,5 @@
 };
 
 &wmac {
-	led {
-		led-sources = <11>;
-		led-active-low;
-	};
+	qca,led-pin = /bits/ 8 <11>;
 };

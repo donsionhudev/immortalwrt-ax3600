@@ -25,7 +25,7 @@ test_6in4_rfc1918()
 
 proto_6in4_update() {
 	sh -c '
-		timeout=15
+		timeout=5
 
 		(while [ $((timeout--)) -gt 0 ]; do
 			sleep 1
@@ -123,24 +123,22 @@ proto_6in4_setup() {
 		local ca_path="${SSL_CERT_DIR:-/etc/ssl/certs}"
 
 		[ -f /lib/libustream-ssl.so ] && http=https
-		[ "$http" = "https" -a -z "$(find "$ca_path" \( -name "*.0" -o -name "*.crt" \) 2>/dev/null)" ] && {
+		[ "$http" = "https" -a -z "$(find $ca_path -name "*.0" 2>/dev/null)" ] && {
 			urlget_opts="$urlget_opts --no-check-certificate"
 		}
 
 		local url="$http://ipv4.tunnelbroker.net/nic/update?hostname=$tunnelid"
-
+		
 		test_6in4_rfc1918 "$ipaddr" && {
 			local url="${url}&myip=${ipaddr}"
 		}
 
 		local try=0
 		local max=3
-		local retry_delay=5
 
 		(
 			set -o pipefail
-			while true; do
-				try=$((try + 1))
+			while [ $((++try)) -le $max ]; do
 				if proto_6in4_update $urlget $urlget_opts --user="$username" --password="$password" "$url" 2>&1 | \
 					sed -e 's,^Killed$,timeout,' -e "s,^,update $try/$max: ," | \
 					logger -t "$link";
@@ -148,11 +146,7 @@ proto_6in4_setup() {
 					logger -t "$link" "updated"
 					return 0
 				fi
-
-				[ "$try" -ge "$max" ] && break
-
-				sleep "$retry_delay"
-				retry_delay=$((retry_delay * 2))
+				sleep 5
 			done
 			logger -t "$link" "update failed"
 		)

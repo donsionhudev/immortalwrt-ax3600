@@ -11,6 +11,7 @@
 
 	gpio-export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		modem_reset {
 			gpio-export,name = "modem_reset";

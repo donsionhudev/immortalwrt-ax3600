@@ -5,16 +5,17 @@ Subject: [PATCH] libnftnl: add fullcone expression support
 
 Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
 ---
- include/libnftnl/expr.h | 7 +++++++
- include/linux/netfilter/nf_tables.h | 16 ++++++++++++++++
- src/Makefile.am | 1 +
- src/expr/fullcone.c | 188 ++++++++++++++++++++++++++++++++++++++++
- src/expr_ops.c | 2 ++
- 5 files changed, 214 insertions(+), 0 deletions(-)
+ include/libnftnl/expr.h             |   6 +
+ include/linux/netfilter/nf_tables.h |  16 +++
+ src/Makefile.am                     |   1 +
+ src/expr/fullcone.c                 | 167 ++++++++++++++++++++++++++++
+ src/expr_ops.c                      |   2 +
+ 5 files changed, 192 insertions(+)
+ create mode 100644 src/expr/fullcone.c
 
 --- a/include/libnftnl/expr.h
 +++ b/include/libnftnl/expr.h
-@@ -274,6 +274,13 @@ enum {
+@@ -272,6 +272,13 @@ enum {
  };
  
  enum {
@@ -30,7 +31,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  	NFTNL_EXPR_REDIR_FLAGS,
 --- a/include/linux/netfilter/nf_tables.h
 +++ b/include/linux/netfilter/nf_tables.h
-@@ -1510,6 +1510,22 @@ enum nft_masq_attributes {
+@@ -1464,6 +1464,22 @@ enum nft_masq_attributes {
  #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
  
  /**
@@ -55,7 +56,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
   * @NFTA_REDIR_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -56,6 +56,7 @@ libnftnl_la_SOURCES = utils.c		\
+@@ -55,6 +55,7 @@ libnftnl_la_SOURCES = utils.c		\
  		      expr/target.c	\
  		      expr/tunnel.c	\
  		      expr/masq.c	\
@@ -65,9 +66,9 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  		      expr/socket.c	\
 --- /dev/null
 +++ b/src/expr/fullcone.c
-@@ -0,0 +1,188 @@
+@@ -0,0 +1,172 @@
 +/*
-+ * (C) 2022-2025 wongsyrone
++ * (C) 2022 wongsyrone
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published
@@ -96,8 +97,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
 +
 +static int
 +nftnl_expr_fullcone_set(struct nftnl_expr *e, uint16_t type,
-+			const void *data, uint32_t data_len,
-+			uint32_t byteorder)
++		       const void *data, uint32_t data_len)
 +{
 +	struct nftnl_expr_fullcone *fullcone = nftnl_expr_data(e);
 +
@@ -111,18 +111,8 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
 +	case NFTNL_EXPR_FULLCONE_REG_PROTO_MAX:
 +		memcpy(&fullcone->sreg_proto_max, data, data_len);
 +		break;
-+	default:
-+		return -1;
 +	}
 +	return 0;
-+}
-+
-+/* expr_ops::set prototype before libnftnl 1.3.2 (no byteorder argument) */
-+static int
-+nftnl_expr_fullcone_set_compat(struct nftnl_expr *e, uint16_t type,
-+			       const void *data, uint32_t data_len)
-+{
-+	return nftnl_expr_fullcone_set(e, type, data, data_len, 0);
 +}
 +
 +static const void *
@@ -243,12 +233,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
 +	.alloc_len	= sizeof(struct nftnl_expr_fullcone),
 +	.nftnl_max_attr	= __NFTNL_EXPR_FULLCONE_MAX - 1,
 +	.attr_policy	= fullcone_attr_policy,
-+	/* pick the setter matching this libnftnl's expr_ops::set */
-+	.set		= _Generic(((struct expr_ops *)0)->set,
-+			int (*)(struct nftnl_expr *, uint16_t, const void *, uint32_t):
-+				nftnl_expr_fullcone_set_compat,
-+			default:
-+				nftnl_expr_fullcone_set),
++	.set		= nftnl_expr_fullcone_set,
 +	.get		= nftnl_expr_fullcone_get,
 +	.parse		= nftnl_expr_fullcone_parse,
 +	.build		= nftnl_expr_fullcone_build,

@@ -7,19 +7,18 @@ include $(TOPDIR)/rules.mk
 ARCH := arm
 BOARD := tegra
 BOARDNAME := NVIDIA Tegra
-FEATURES := boot-part ext4 fpu gpio legacy-sdcard pci pcie rootfs-part rtc squashfs usb
+FEATURES := audio boot-part display ext4 fpu gpio pci pcie rootfs-part rtc squashfs usb
 CPU_TYPE := cortex-a9
 CPU_SUBTYPE := vfpv3-d16
 SUBTARGETS := generic
 
-KERNEL_PATCHVER := 6.18
+KERNEL_PATCHVER := 6.6
 
 include $(INCLUDE_DIR)/target.mk
 
 KERNELNAME := zImage dtbs
 
-DEFAULT_PACKAGES += e2fsprogs mkf2fs
-DEFAULT_PACKAGES += video-support
+DEFAULT_PACKAGES += e2fsprogs mkf2fs partx-utils
 
 define Target/Description
 	Build firmware image for NVIDIA Tegra SoC devices.

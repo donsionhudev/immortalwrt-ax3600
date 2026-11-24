@@ -1,6 +1,6 @@
 /dts-v1/;
 
-#include "mt7981b.dtsi"
+#include "mt7981.dtsi"
 
 / {
 	model = "GL.iNet GL-MT3000";
@@ -40,12 +40,12 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_lightblue: led-0 {
+		led_lightblue: led@0 {
 			label = "blue:run";
 			gpios = <&pio 31 GPIO_ACTIVE_LOW>;
 		};
 
-		led_white: led-1 {
+		led_white: led@1 {
 			label = "white:system";
 			gpios = <&pio 30 GPIO_ACTIVE_LOW>;
 		};
@@ -138,6 +138,8 @@
 	status = "okay";
 
 	spi_nand: flash@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
 		compatible = "spi-nand";
 		reg = <0>;
 		spi-max-frequency = <52000000>;
@@ -171,7 +173,7 @@
 				reg = <0x0100000 0x0080000>;
 			};
 
-			partition@180000 {
+			factory: partition@180000 {
 				label = "Factory";
 				reg = <0x180000 0x0200000>;
 				read-only;
@@ -180,10 +182,6 @@
 					compatible = "fixed-layout";
 					#address-cells = <1>;
 					#size-cells = <1>;
-
-					eeprom_factory_0: eeprom@0 {
-						reg = <0x0 0x1000>;
-					};
 
 					macaddr: macaddr@a {
 						compatible = "mac-base";
@@ -240,8 +238,7 @@
 };
 
 &wifi {
-	status = "okay";
+	mediatek,mtd-eeprom = <&factory 0x0>;
 
-	nvmem-cells = <&eeprom_factory_0>;
-	nvmem-cell-names = "eeprom";
+	status = "okay";
 };

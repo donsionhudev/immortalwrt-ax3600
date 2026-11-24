@@ -21,10 +21,7 @@ PKG_LICENSE:=GPL-2.0
 
 # Extend depends from version.mk
 PKG_CONFIG_DEPENDS += \
-	CONFIG_SIGNED_PACKAGES \
-	CONFIG_TARGET_INIT_PATH \
-	CONFIG_TARGET_PREINIT_DISABLE_FAILSAFE \
-	CONFIG_TARGET_SERIAL \
+	CONFIG_SIGNED_PACKAGES CONFIG_TARGET_INIT_PATH CONFIG_TARGET_PREINIT_DISABLE_FAILSAFE \
 	CONFIG_NAND_SUPPORT \
 	CONFIG_LEGACY_SDCARD_SUPPORT \
 	CONFIG_EMMC_SUPPORT \
@@ -46,10 +43,9 @@ define Package/base-files
 	+netifd +libc +jsonfilter +SIGNED_PACKAGES:usign +SIGNED_PACKAGES:openwrt-keyring \
 	+NAND_SUPPORT:ubi-utils +fstools +fwtool \
 	+SELINUX:procd-selinux +!SELINUX:procd +USE_SECCOMP:procd-seccomp \
-	+SELINUX:busybox-selinux +!SELINUX:busybox \
-	+ucode +ucode-mod-fs +ucode-mod-digest
+	+SELINUX:busybox-selinux +!SELINUX:busybox
   TITLE:=Base filesystem for OpenWrt
-  URL:=https://openwrt.org/
+  URL:=http://openwrt.org/
   VERSION:=$(PKG_RELEASE)~$(lastword $(subst -, ,$(REVISION)))
 endef
 
@@ -57,6 +53,7 @@ define Package/base-files/conffiles
 /etc/config/
 /etc/config/network
 /etc/config/system
+/etc/dropbear/
 /etc/ethers
 /etc/group
 /etc/hosts
@@ -197,7 +194,6 @@ define Package/base-files/install
 
 	$(SED) "s#%PATH%#$(TARGET_INIT_PATH)#g" \
 		$(1)/sbin/hotplug-call \
-		$(1)/sbin/preinit-netdev \
 		$(1)/etc/preinit \
 		$(1)/etc/profile
 
@@ -229,11 +225,8 @@ ifneq ($(CONFIG_TARGET_ROOTFS_PERSIST_VAR),y)
 else
 	mkdir -p $(1)/var
 	$(LN) /tmp/run $(1)/var/run
-	$(LN) ../tmp/lock $(1)/var/lock
-	mkdir -p $(1)/tmp/lock
 endif
 	$(LN) /tmp/resolv.conf /tmp/TZ /tmp/localtime $(1)/etc/
-	$(LN) /tmp/sysinfo/board.json $(1)/etc/board.json
 
 	chmod 0600 $(1)/etc/shadow
 	chmod 1777 $(1)/tmp
@@ -257,13 +250,12 @@ endif
 		rm -f $(1)/etc/banner.failsafe,)
 
 ifneq ($(CONFIG_USE_APK),)
-	mkdir -p $(1)/etc/apk/repositories.d
-	$(call FeedSourcesAppendAPK,$(1)/etc/apk/repositories.d/distfeeds.list)
-	$(VERSION_SED_SCRIPT) $(1)/etc/apk/repositories.d/distfeeds.list
+	mkdir -p $(1)/etc/apk/
+	$(call FeedSourcesAppendAPK,$(1)/etc/apk/repositories)
+	$(VERSION_SED_SCRIPT) $(1)/etc/apk/repositories
 
 	rm -f $(1)/etc/uci-defaults/13_fix-group-user
 	rm -f $(1)/sbin/pkg_check
-	echo $(PKG_RELEASE)~$(lastword $(subst -, ,$(REVISION))) >$(STAGING_DIR)/base-files.version
 else
 	$(if $(CONFIG_CLEAN_IPKG),, \
 		mkdir -p $(1)/etc/opkg; \
@@ -272,16 +264,6 @@ else
 	$(if $(CONFIG_IPK_FILES_CHECKSUMS),, \
 		rm -f $(1)/sbin/pkg_check)
 endif
-	$(if $(CONFIG_TARGET_BUTTON_CUSTOMIZATION_FAILSAFE_DISABLED), \
-		rm -f $(1)/etc/rc.button/failsafe)
-	$(if $(CONFIG_TARGET_BUTTON_CUSTOMIZATION_POWER_DISABLED), \
-		rm -f $(1)/etc/rc.button/power)
-	$(if $(CONFIG_TARGET_BUTTON_CUSTOMIZATION_REBOOT_DISABLED), \
-		rm -f $(1)/etc/rc.button/reboot)
-	$(if $(CONFIG_TARGET_BUTTON_CUSTOMIZATION_RESET_DISABLED), \
-		rm -f $(1)/etc/rc.button/reset)
-	$(if $(CONFIG_TARGET_BUTTON_CUSTOMIZATION_RF_KILL_DISABLED), \
-		rm -f $(1)/etc/rc.button/rfkill)
 endef
 
 ifneq ($(DUMP),1)

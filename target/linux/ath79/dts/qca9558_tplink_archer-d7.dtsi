@@ -93,9 +93,8 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
-		compatible = "qca,ar8327";
-		reg = <0x10>;
+	phy0: ethernet-phy@0 {
+		reg = <0>;
 
 		qca,ar8327-initvals = <
 			0x04 0x00080080 /* PORT0 PAD MODE CTRL */
@@ -113,16 +112,12 @@
 &eth0 {
 	status = "okay";
 
+	phy-handle = <&phy0>;
 	pll-data = <0x56000000 0x00000101 0x00001616>;
 
 	gmac-config {
 		device = <&gmac>;
 		rgmii-enabled = <1>;
-	};
-
-	fixed-link {
-		speed = <1000>;
-		full-duplex;
 	};
 };
 
@@ -150,6 +145,8 @@
 };
 
 &usb0 {
+	dr_mode = "host";
+	vbus-supply = <&reg_usb0_vbus>;
 	status = "okay";
 };
 
@@ -158,5 +155,7 @@
 };
 
 &usb1 {
+	dr_mode = "host";
+	vbus-supply = <&reg_usb1_vbus>;
 	status = "okay";
 };

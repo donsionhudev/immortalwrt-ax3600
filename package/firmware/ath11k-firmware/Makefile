@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ath11k-firmware
-PKG_SOURCE_DATE:=2026-10-18
-PKG_SOURCE_VERSION:=ec4944fe9c4179d21f83556e58c5abaf58f95551
-PKG_MIRROR_HASH:=0587c535b8bdf8d9cabe99b21992e58ae62f16bfc9a87681d6865fe578b56044
+PKG_SOURCE_DATE:=2024-10-14
+PKG_SOURCE_VERSION:=15f050122da5ef5bef2cc8c7c19dfb7f98060a49
+PKG_MIRROR_HASH:=e7a89d1570f32552ade539376181494724b5eafb31d00451ff2dcf5a2922a0cb
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/VIKINGYFY/ath11k-firmware-ddwrt.git
+PKG_SOURCE_URL:=https://git.codelinaro.org/clo/ath-firmware/ath11k-firmware.git
 
 PKG_LICENSE_FILES:=LICENSE.qca_firmware
 
@@ -32,76 +32,48 @@ define Package/ath11k-firmware-default
   DEPENDS:=
 endef
 
-define Package/ath11k-firmware-ipq5018-qcn6122
+define Package/ath11k-firmware-ipq6018
 $(Package/ath11k-firmware-default)
-  TITLE:=IPQ5018/QCN6122 ath11k firmware
+  TITLE:=IPQ6018 ath11k firmware
 endef
 
-define Package/ath11k-firmware-ipq5018-ddwrt
+define Package/ath11k-firmware-ipq8074
 $(Package/ath11k-firmware-default)
-  TITLE:=IPQ5018 ath11k firmware DD-WRT
+  TITLE:=IPQ8074 ath11k firmware
 endef
 
-define Package/ath11k-firmware-ipq6018-ddwrt
+define Package/ath11k-firmware-qcn9074
 $(Package/ath11k-firmware-default)
-  TITLE:=IPQ6018 ath11k firmware DD-WRT
-endef
-
-define Package/ath11k-firmware-ipq8074-ddwrt
-$(Package/ath11k-firmware-default)
-  TITLE:=IPQ8074 ath11k firmware DD-WRT
-endef
-
-define Package/ath11k-firmware-qcn9074-ddwrt
-$(Package/ath11k-firmware-default)
-  TITLE:=QCN9074 ath11k firmware DD-WRT
-endef
-
-define Package/ath11k-firmware-ipq9574-ddwrt
-$(Package/ath11k-firmware-default)
-  TITLE:=IPQ9574 ath11k firmware DD-WRT
+  TITLE:=QCN9074 ath11k firmware
 endef
 
 define Build/Compile
 
 endef
 
-define Package/ath11k-firmware-ipq5018-qcn6122/install
-	$(INSTALL_DIR) $(1)/lib/firmware/ath11k/IPQ5018/hw1.0
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/IPQ5018/hw1.0/* $(1)/lib/firmware/ath11k/IPQ5018/hw1.0/
-	$(INSTALL_DIR) $(1)/lib/firmware/ath11k/QCN6122/hw1.0
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/QCN6122/hw1.0/* $(1)/lib/firmware/ath11k/QCN6122/hw1.0/
-endef
-
-define Package/ath11k-firmware-ipq5018-ddwrt/install
-	$(INSTALL_DIR) $(1)/lib/firmware/ath11k/IPQ5018/hw1.0
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/IPQ5018/hw1.0/* $(1)/lib/firmware/ath11k/IPQ5018/hw1.0/
-endef
-
-define Package/ath11k-firmware-ipq6018-ddwrt/install
+define Package/ath11k-firmware-ipq6018/install
 	$(INSTALL_DIR) $(1)/lib/firmware/IPQ6018
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/IPQ6018/hw1.0/* $(1)/lib/firmware/IPQ6018/
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/IPQ6018/hw1.0/2.5.0.1/WLAN.HK.2.5.0.1-03982-QCAHKSWPL_SILICONZ-3/* \
+		$(1)/lib/firmware/IPQ6018/
 endef
 
-define Package/ath11k-firmware-ipq8074-ddwrt/install
+define Package/ath11k-firmware-ipq8074/install
 	$(INSTALL_DIR) $(1)/lib/firmware/IPQ8074
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/IPQ8074/hw2.0/* $(1)/lib/firmware/IPQ8074/
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/IPQ8074/hw2.0/2.9.0.1/WLAN.HK.2.9.0.1-02146-QCAHKSWPL_SILICONZ-1/* \
+		$(1)/lib/firmware/IPQ8074/
 endef
 
-# IPQ9574 uses the Q6 and M3 split images through the secure WCSS loader.
-define Package/ath11k-firmware-ipq9574-ddwrt/install
-	$(INSTALL_DIR) $(1)/lib/firmware/ath11k/IPQ9574/hw1.0
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/IPQ9574/hw1.0/* $(1)/lib/firmware/ath11k/IPQ9574/hw1.0/
-endef
-
-define Package/ath11k-firmware-qcn9074-ddwrt/install
+define Package/ath11k-firmware-qcn9074/install
 	$(INSTALL_DIR) $(1)/lib/firmware/ath11k/QCN9074/hw1.0
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/QCN9074/hw1.0/* $(1)/lib/firmware/ath11k/QCN9074/hw1.0/
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/QCN9074/hw1.0/2.9.0.1/WLAN.HK.2.9.0.1-02146-QCAHKSWPL_SILICONZ-1/* \
+		$(1)/lib/firmware/ath11k/QCN9074/hw1.0/
+	$(INSTALL_BIN) \
+		$(PKG_BUILD_DIR)/QCN9074/hw1.0/board-2.bin $(1)/lib/firmware/ath11k/QCN9074/hw1.0/board-2.bin
 endef
 
-$(eval $(call BuildPackage,ath11k-firmware-ipq5018-qcn6122))
-$(eval $(call BuildPackage,ath11k-firmware-ipq5018-ddwrt))
-$(eval $(call BuildPackage,ath11k-firmware-ipq6018-ddwrt))
-$(eval $(call BuildPackage,ath11k-firmware-ipq8074-ddwrt))
-$(eval $(call BuildPackage,ath11k-firmware-ipq9574-ddwrt))
-$(eval $(call BuildPackage,ath11k-firmware-qcn9074-ddwrt))
+$(eval $(call BuildPackage,ath11k-firmware-ipq6018))
+$(eval $(call BuildPackage,ath11k-firmware-ipq8074))
+$(eval $(call BuildPackage,ath11k-firmware-qcn9074))

@@ -21,6 +21,13 @@
 	leds {
 		compatible = "gpio-leds";
 
+		wlan {
+			function = LED_FUNCTION_WLAN;
+			color = <LED_COLOR_ID_RED>;
+			gpios = <&gpio 0 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "phy0tpt";
+		};
+
 		lan {
 			function = LED_FUNCTION_LAN;
 			color = <LED_COLOR_ID_GREEN>;
@@ -64,8 +71,4 @@
 
 &wmac {
 	status = "okay";
-
-	led {
-		led-sources = <0>;
-	};
 };

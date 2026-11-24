@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gettext-full
-PKG_VERSION:=1.0
+PKG_VERSION:=0.22.5
 PKG_RELEASE:=1
 
 PKG_SOURCE:=gettext-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gettext
-PKG_HASH:=71132a3fb71e68245b8f2ac4e9e97137d3e5c02f415636eb508ae607bc01add7
+PKG_HASH:=fe10c37353213d78a5b83d48af231e005c4da84db5ce88037d88355938259640
 PKG_BUILD_DIR:=$(BUILD_DIR)/gettext-$(PKG_VERSION)
 HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/gettext-$(PKG_VERSION)
 
@@ -24,10 +24,12 @@ PKG_CPE_ID:=cpe:/a:gnu:gettext
 
 PKG_INSTALL:=1
 PKG_BUILD_DEPENDS:=gettext-full/host libunistring libxml2
-PKG_BUILD_PARALLEL:=1
+PKG_BUILD_PARALLEL:=0
 
-HOST_BUILD_DEPENDS:=gnulib-l10n/host gperf/host libiconv-full/host libunistring/host libxml2/host
-HOST_BUILD_PARALLEL:=1
+PKG_FIXUP:=autoreconf
+
+HOST_BUILD_DEPENDS:=gperf/host libiconv-full/host libunistring/host libxml2/host
+HOST_BUILD_PARALLEL:=0
 
 PKG_SUBDIRS:= \
 	$$$$(foreach dir, \
@@ -43,12 +45,11 @@ PKG_SUBDIRS:= \
 		libgrep \
 		libtextstyle \
 		m4 \
+		misc \
 		po \
 		projects \
 		src \
 		styles \
-		autotools \
-		wizard \
 		gettext-runtime \
 		gettext-tools \
 	,$$$$(wildcard $$$$(dir)) )
@@ -66,15 +67,13 @@ define Package/libintl-full
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=GNU Internationalization library
-  DEPENDS:=+libunistring +libxml2
-  URL:=https://www.gnu.org/software/gettext/
+  URL:=http://www.gnu.org/software/gettext/
   ABI_VERSION:=8
 endef
 
 export GNULIB_SRCDIR:=$(HOST_GNULIB_SRCDIR)
 
 TARGET_CFLAGS += $(FPIC)
-TARGET_CFLAGS += -std=gnu23
 ifneq ($(HOST_OS),Linux)
   TARGET_CFLAGS += -I$(STAGING_DIR_HOSTPKG)/include
 endif
@@ -88,7 +87,7 @@ CONFIGURE_ARGS += \
 	--disable-java \
 	--disable-openmp \
 	--disable-curses \
-	--with-included-libintl \
+	--with-included-gettext \
 	--without-libintl-prefix \
 	--without-libexpat-prefix \
 	--with-libunistring-prefix=$(STAGING_DIR)/usr \
@@ -115,9 +114,6 @@ HOST_CFLAGS += $(HOST_FPIC)
 define Host/Bootstrap
 	( \
 		cd $(HOST_BUILD_DIR); \
-		for dir in $$$$(find . -maxdepth 3 \( -name configure.ac -o -name configure.in \) -exec dirname {} \;); do \
-			(cd $$$$dir && $(AM_TOOL_PATHS) $(STAGING_DIR_HOST)/bin/libtoolize --copy --force) || exit 1; \
-		done && \
 		$(AM_TOOL_PATHS) \
 		./autogen.sh \
 	)
@@ -141,9 +137,6 @@ endef
 define Build/Bootstrap
 	( \
 		cd $(PKG_BUILD_DIR); \
-		for dir in $$$$(find . -maxdepth 3 \( -name configure.ac -o -name configure.in \) -exec dirname {} \;); do \
-			(cd $$$$dir && $(AM_TOOL_PATHS) $(STAGING_DIR_HOST)/bin/libtoolize --copy --force) || exit 1; \
-		done && \
 		$(AM_TOOL_PATHS) \
 		./autogen.sh \
 	)
@@ -171,8 +164,8 @@ define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/lib/libintl-full/lib
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libintl.{a,so*} $(1)/usr/lib/libintl-full/lib/
 
-	$(INSTALL_DIR) $(1)/usr/share/gettext/m4
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/share/gettext/m4/* $(1)/usr/share/gettext/m4/
+	$(INSTALL_DIR) $(1)/usr/share/aclocal
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/share/aclocal/* $(1)/usr/share/aclocal/
 
 	$(SED) '/read dummy/d' $(STAGING_DIR_HOSTPKG)/bin/gettextize
 endef

@@ -250,11 +250,10 @@ int fe_mdio_init(struct fe_priv *priv)
 	if (err)
 		goto err_free_bus;
 
-	of_node_put(mii_np);
 	return 0;
 
 err_free_bus:
-	mdiobus_free(priv->mii_bus);
+	kfree(priv->mii_bus);
 err_put_node:
 	of_node_put(mii_np);
 err_no_bus:
@@ -269,6 +268,6 @@ void fe_mdio_cleanup(struct fe_priv *priv)
 		return;
 
 	mdiobus_unregister(priv->mii_bus);
-	mdiobus_free(priv->mii_bus);
-	priv->mii_bus = NULL;
+	of_node_put(priv->mii_bus->dev.of_node);
+	kfree(priv->mii_bus);
 }

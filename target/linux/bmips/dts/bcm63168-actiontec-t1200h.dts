@@ -149,7 +149,7 @@
 			port@8 {
 				reg = <0x8>;
 
-				phy-mode = "rgmii-id";
+				phy-mode = "rgmii";
 				ethernet = <&switch0port6>;
 
 				fixed-link {
@@ -234,7 +234,7 @@
 			reg = <6>;
 			label = "extsw";
 
-			phy-mode = "rgmii-id";
+			phy-mode = "rgmii";
 
 			fixed-link {
 				speed = <1000>;

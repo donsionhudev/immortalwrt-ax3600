@@ -3,7 +3,6 @@
 # Copyright (C) 2022-2023 Enéas Ulir de Queiroz
 
 ENGINES_DIR=engines-3
-MODULES_DIR=ossl-modules
 
 define Package/openssl/module/Default
   SECTION:=libs
@@ -75,6 +74,6 @@ endef
 # 1 = provider name
 # 2 = [ package name, defaults to libopenssl-$(1) ]
 define Package/openssl/add-provider
-  $(call Package/openssl/add-module,provider,$(1),/usr/lib/$(MODULES_DIR),$(2))
+  $(call Package/openssl/add-module,provider,$(1),/usr/lib/ossl-modules,$(2))
 endef
 

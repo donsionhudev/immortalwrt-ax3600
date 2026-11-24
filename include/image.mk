@@ -41,9 +41,6 @@ KDIR=$(KERNEL_BUILD_DIR)
 KDIR_TMP=$(KDIR)/tmp
 DTS_DIR:=$(LINUX_DIR)/arch/$(LINUX_KARCH)/boot/dts
 
-ifeq ($(EXTRA_IMAGE_NAME),)
-EXTRA_IMAGE_NAME:=$(call qstrip,$(CONFIG_EXTRA_IMAGE_NAME))
-endif
 IMG_PREFIX_EXTRA:=$(if $(EXTRA_IMAGE_NAME),$(call sanitize,$(EXTRA_IMAGE_NAME))-)
 IMG_PREFIX_VERNUM:=$(if $(CONFIG_VERSION_FILENAMES),$(call sanitize,$(VERSION_NUMBER))-)
 IMG_PREFIX_VERCODE:=$(if $(CONFIG_VERSION_CODE_FILENAMES),$(call sanitize,$(VERSION_CODE))-)
@@ -89,12 +86,10 @@ SQUASHFS_BLOCKSIZE := $(CONFIG_TARGET_SQUASHFS_BLOCK_SIZE)k
 SQUASHFSOPT := -b $(SQUASHFS_BLOCKSIZE)
 SQUASHFSOPT += -p '/dev d 755 0 0' -p '/dev/console c 600 0 0 5 1'
 SQUASHFSOPT += $(if $(CONFIG_SELINUX),-xattrs,-no-xattrs)
-SQUASHFSOPT += -block-readers $(CONFIG_TARGET_SQUASHFS_BLOCK_READERS)
-SQUASHFSOPT += -small-readers $(CONFIG_TARGET_SQUASHFS_SMALL_READERS)
 SQUASHFSCOMP := gzip
 LZMA_XZ_OPTIONS := -Xpreset 9 -Xe -Xlc 0 -Xlp 2 -Xpb 2
 ifeq ($(CONFIG_SQUASHFS_XZ),y)
-  ifneq ($(filter arm x86 powerpc,$(LINUX_KARCH)),)
+  ifneq ($(filter arm x86 powerpc sparc,$(LINUX_KARCH)),)
     BCJ_FILTER:=-Xbcj $(LINUX_KARCH)
   endif
   SQUASHFSCOMP := xz $(LZMA_XZ_OPTIONS) $(BCJ_FILTER)
@@ -102,29 +97,14 @@ endif
 
 JFFS2_BLOCKSIZE ?= 64k 128k
 
-EROFS_PCLUSTERSIZE = $(shell echo $$(($(CONFIG_TARGET_EROFS_PCLUSTER_SIZE)*1024)))
-EROFSOPT := -Efragments,dedupe,ztailpacking -Uclear --all-root
-EROFSOPT += $(if $(SOURCE_DATE_EPOCH),-T$(SOURCE_DATE_EPOCH) --ignore-mtime)
-EROFSOPT += $(if $(CONFIG_SELINUX),,-x-1)
-EROFSCOMP := lz4hc,12
-ifeq ($(CONFIG_EROFS_FS_ZIP_LZMA),y)
-EROFSCOMP := lzma,109
-endif
-
 fs-types-$(CONFIG_TARGET_ROOTFS_SQUASHFS) += squashfs
 fs-types-$(CONFIG_TARGET_ROOTFS_JFFS2) += $(addprefix jffs2-,$(JFFS2_BLOCKSIZE))
 fs-types-$(CONFIG_TARGET_ROOTFS_JFFS2_NAND) += $(addprefix jffs2-nand-,$(NAND_BLOCKSIZE))
 fs-types-$(CONFIG_TARGET_ROOTFS_EXT4FS) += ext4
 fs-types-$(CONFIG_TARGET_ROOTFS_UBIFS) += ubifs
-fs-types-$(CONFIG_TARGET_ROOTFS_EROFS) += erofs
-fs-types-$(CONFIG_TARGET_ROOTFS_TARGZ) += targz
 fs-subtypes-$(CONFIG_TARGET_ROOTFS_JFFS2) += $(addsuffix -raw,$(addprefix jffs2-,$(JFFS2_BLOCKSIZE)))
 
 TARGET_FILESYSTEMS := $(fs-types-y)
-
-ifneq ($(ROOTFS_FILESYSTEM),)
-TARGET_FILESYSTEMS := $(filter $(ROOTFS_FILESYSTEM) $(ROOTFS_FILESYSTEM)-%,$(TARGET_FILESYSTEMS))
-endif
 
 FS_64K := $(filter-out jffs2-%,$(TARGET_FILESYSTEMS)) jffs2-64k
 FS_128K := $(filter-out jffs2-%,$(TARGET_FILESYSTEMS)) jffs2-128k
@@ -185,6 +165,14 @@ define Image/BuildKernel/MkuImage
 		-n '$(call toupper,$(ARCH)) $(VERSION_DIST) Linux-$(LINUX_VERSION)' -d $(4) $(5)
 endef
 
+ifdef CONFIG_TARGET_IMAGES_GZIP
+  define Image/Gzip
+	rm -f $(1).gz
+	gzip -9n $(1)
+  endef
+endif
+
+
 # Disable noisy checks by default as in upstream
 DTC_WARN_FLAGS := \
   -Wno-interrupt_provider \
@@ -212,6 +200,10 @@ endef
 ifeq ($(DUMP),)
 ROOTFS_PARTSIZE=$(shell echo $$(($(CONFIG_TARGET_ROOTFS_PARTSIZE)*1024*1024)))
 endif
+
+define Image/pad-root-squashfs
+	$(call Image/pad-to,$(KDIR)/root.squashfs,$(if $(1),$(1),$(ROOTFS_PARTSIZE)))
+endef
 
 # $(1) source dts file
 # $(2) target dtb file
@@ -302,7 +294,6 @@ define Image/mkfs/ubifs
 		$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_LZO),--compr=lzo) \
 		$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_ZLIB),--compr=zlib) \
 		$(if $(shell echo $(CONFIG_TARGET_UBIFS_JOURNAL_SIZE)),--jrn-size=$(CONFIG_TARGET_UBIFS_JOURNAL_SIZE)) \
-		$(if $(IMG_PART_DISKGUID),--uuid-node=$(subst -,,$(IMG_PART_DISKGUID))) \
 		--squash-uids \
 		-o $@ -d $(call mkfs_target_dir,$(1))
 endef
@@ -316,23 +307,10 @@ define Image/mkfs/ext4
 		$@ $(call mkfs_target_dir,$(1))/
 endef
 
-# Don't use the mkfs.erofs builtin $SOURCE_DATE_EPOCH behavior
-define Image/mkfs/erofs
-	env -u SOURCE_DATE_EPOCH $(STAGING_DIR_HOST)/bin/mkfs.erofs -z$(EROFSCOMP) \
-		-C$(EROFS_PCLUSTERSIZE) $(EROFSOPT) \
-		$@ $(call mkfs_target_dir,$(1))
-endef
-
-define Image/mkfs/targz
-	$(TAR) -cp --numeric-owner --owner=0 --group=0 --mode=a-s --sort=name \
-		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
-		-C $(call mkfs_target_dir,$(1)) . | gzip -9n > $@
-endef
-
 define Image/Manifest
 	$(if $(CONFIG_USE_APK), \
 		$(call apk,$(TARGET_DIR_ORIG)) list --quiet --manifest --no-network \
-			--repositories-file /dev/null | sort | sed 's/ / - /'  > \
+			--repositories-file /dev/zero | sort | sed 's/ / - /'  > \
 			$(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED)).manifest, \
 		$(call opkg,$(TARGET_DIR_ORIG)) list-installed > \
 			$(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED)).manifest \
@@ -345,7 +323,23 @@ ifneq ($(CONFIG_JSON_CYCLONEDX_SBOM),)
 endif
 endef
 
-ifeq ($(filter-out targz,$(ROOTFS_FILESYSTEM)),)
+define Image/gzip-ext4-padded-squashfs
+
+  define Image/Build/squashfs
+    $(call Image/pad-root-squashfs)
+  endef
+
+  ifneq ($(CONFIG_TARGET_IMAGES_GZIP),)
+    define Image/Build/gzip/ext4
+      $(call Image/Build/gzip,ext4)
+    endef
+    define Image/Build/gzip/squashfs
+      $(call Image/Build/gzip,squashfs)
+    endef
+  endif
+
+endef
+
 ifdef CONFIG_TARGET_ROOTFS_TARGZ
   define Image/Build/targz
 	$(TAR) -cp --numeric-owner --owner=0 --group=0 --mode=a-s --sort=name \
@@ -353,14 +347,11 @@ ifdef CONFIG_TARGET_ROOTFS_TARGZ
 		-C $(TARGET_DIR)/ . | gzip -9n > $(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED))-rootfs.tar.gz
   endef
 endif
-endif
 
-ifeq ($(filter-out cpiogz,$(ROOTFS_FILESYSTEM)),)
 ifdef CONFIG_TARGET_ROOTFS_CPIOGZ
   define Image/Build/cpiogz
 	( cd $(TARGET_DIR); find . | $(STAGING_DIR_HOST)/bin/cpio -o -H newc -R 0:0 | gzip -9n >$(BIN_DIR)/$(IMG_ROOTFS).cpio.gz )
   endef
-endif
 endif
 
 mkfs_packages = $(filter-out @%,$(PACKAGES_$(call param_get,pkg,pkg=$(target_params))))
@@ -374,17 +365,19 @@ opkg_target = \
 
 apk_target = \
 	$(call apk,$(mkfs_cur_target_dir)) --no-scripts \
-		--repositories-file /dev/null --repository file://$(PACKAGE_DIR_ALL)/packages.adb
+		--repositories-file /dev/zero --repository file://$(PACKAGE_DIR_ALL)/packages.adb
 
 
 target-dir-%: FORCE
 ifneq ($(CONFIG_USE_APK),)
 	rm -rf $(mkfs_cur_target_dir)
 	$(CP) $(TARGET_DIR_ORIG) $(mkfs_cur_target_dir)
+	mv $(mkfs_cur_target_dir)/etc/apk/repositories $(mkfs_cur_target_dir).repositories
 	$(if $(mkfs_packages_remove), \
-		-$(apk_target) del $(mkfs_packages_remove))
+		$(apk_target) del $(mkfs_packages_remove))
 	$(if $(mkfs_packages_add), \
 		$(apk_target) add $(mkfs_packages_add))
+	mv $(mkfs_cur_target_dir).repositories $(mkfs_cur_target_dir)/etc/apk/repositories
 else
 	rm -rf $(mkfs_cur_target_dir) $(mkfs_cur_target_dir).opkg
 	$(CP) $(TARGET_DIR_ORIG) $(mkfs_cur_target_dir)
@@ -499,7 +492,6 @@ define Device/Init
   VID_HDR_OFFSET :=
   UBINIZE_OPTS :=
   UBINIZE_PARTS :=
-  UBINIZE_PARTS_AFTER :=
   MKUBIFS_OPTS :=
 
   FS_OPTIONS/ubifs = $$(MKUBIFS_OPTS)
@@ -524,9 +516,6 @@ define Device/Init
   SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
   IMAGE_METADATA :=
 
-  ##@ Filesystems to build images for.
-  # Set FILESYSTEMS/<image> to build an image for only some of them.
-  ##
   FILESYSTEMS := $(TARGET_FILESYSTEMS)
 
   UBOOT_PATH :=  $(STAGING_DIR_IMAGE)/uboot-$(1)
@@ -538,8 +527,7 @@ endef
 DEFAULT_DEVICE_VARS := \
   DEVICE_NAME KERNEL KERNEL_INITRAMFS KERNEL_INITRAMFS_IMAGE KERNEL_SIZE \
   CMDLINE UBOOTENV_IN_UBI KERNEL_IN_UBI BLOCKSIZE PAGESIZE SUBPAGESIZE \
-  VID_HDR_OFFSET UBINIZE_OPTS UBINIZE_PARTS UBINIZE_PARTS_AFTER \
-  MKUBIFS_OPTS DEVICE_DTC_FLAGS \
+  VID_HDR_OFFSET UBINIZE_OPTS UBINIZE_PARTS MKUBIFS_OPTS DEVICE_DTC_FLAGS \
   DEVICE_DTCO_FLAGS DEVICE_DTS DEVICE_DTS_CONFIG DEVICE_DTS_DELIMITER \
   DEVICE_DTS_DIR DEVICE_DTS_OVERLAY DEVICE_DTS_LOADADDR \
   DEVICE_FDT_NUM DEVICE_IMG_PREFIX SOC BOARD_NAME UIMAGE_MAGIC UIMAGE_NAME \
@@ -590,6 +578,7 @@ define Device/Check/Common
       _PROFILE_SET :=
     endif
   endif
+  DEVICE_PACKAGES += $$(call extra_packages,$$(DEVICE_PACKAGES))
   ifdef TARGET_PER_DEVICE_ROOTFS
     $$(eval $$(call merge_packages,_PACKAGES,$$(DEVICE_PACKAGES) $$(call DEVICE_EXTRA_PACKAGES,$(1))))
     ROOTFS_ID/$(1) := $$(if $$(_PROFILE_SET),$$(call mkfs_packages_id,$$(_PACKAGES)))
@@ -669,8 +658,6 @@ define Device/Build/initramfs
 	VERSION_NUMBER="$(VERSION_NUMBER)" \
 	VERSION_CODE="$(VERSION_CODE)" \
 	SUPPORTED_DEVICES="$$(SUPPORTED_DEVICES)" \
-	KERNEL_SIZE="$$(KERNEL_SIZE)" \
-	IMAGE_SIZE="$$(IMAGE_SIZE)" \
 	$(TOPDIR)/scripts/json_add_image_info.py $$@
 endef
 endif
@@ -739,11 +726,12 @@ define Device/Build/kernel
 endef
 
 define Device/Build/image
+  GZ_SUFFIX := $(if $(filter %dtb %gz,$(2)),,$(if $(and $(findstring ext4,$(1)),$(CONFIG_TARGET_IMAGES_GZIP)),.gz))
   $$(_TARGET): $(if $(CONFIG_JSON_OVERVIEW_IMAGE_INFO), \
 	  $(BUILD_DIR)/json_info_files/$(call DEVICE_IMG_NAME,$(1),$(2)).json, \
-	  $(BIN_DIR)/$(call DEVICE_IMG_NAME,$(1),$(2)))
+	  $(BIN_DIR)/$(call DEVICE_IMG_NAME,$(1),$(2))$$(GZ_SUFFIX))
   $(eval $(call Device/Export,$(KDIR)/tmp/$(call DEVICE_IMG_NAME,$(1),$(2)),$(1)))
-  $(3)-images: $(BIN_DIR)/$(call DEVICE_IMG_NAME,$(1),$(2))
+  $(3)-images: $(BIN_DIR)/$(call DEVICE_IMG_NAME,$(1),$(2))$$(GZ_SUFFIX)
 
   ROOTFS/$(1)/$(3) := \
 	$(KDIR)/root.$(1)$$(strip \
@@ -761,10 +749,13 @@ define Device/Build/image
 
   .IGNORE: $(BIN_DIR)/$(call DEVICE_IMG_NAME,$(1),$(2))
 
+  $(BIN_DIR)/$(call DEVICE_IMG_NAME,$(1),$(2)).gz: $(KDIR)/tmp/$(call DEVICE_IMG_NAME,$(1),$(2))
+	gzip -c -9n $$^ > $$@
+
   $(BIN_DIR)/$(call DEVICE_IMG_NAME,$(1),$(2)): $(KDIR)/tmp/$(call DEVICE_IMG_NAME,$(1),$(2))
 	cp $$^ $$@
 
-  $(BUILD_DIR)/json_info_files/$(call DEVICE_IMG_NAME,$(1),$(2)).json: $(BIN_DIR)/$(call DEVICE_IMG_NAME,$(1),$(2))
+  $(BUILD_DIR)/json_info_files/$(call DEVICE_IMG_NAME,$(1),$(2)).json: $(BIN_DIR)/$(call DEVICE_IMG_NAME,$(1),$(2))$$(GZ_SUFFIX)
 	@mkdir -p $$(shell dirname $$@)
 	DEVICE_ID="$(DEVICE_NAME)" \
 	SOURCE_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
@@ -801,8 +792,6 @@ define Device/Build/image
 	VERSION_NUMBER="$(VERSION_NUMBER)" \
 	VERSION_CODE="$(VERSION_CODE)" \
 	SUPPORTED_DEVICES="$(SUPPORTED_DEVICES)" \
-	KERNEL_SIZE="$(KERNEL_SIZE)" \
-	IMAGE_SIZE="$(IMAGE_SIZE)" \
 	$(TOPDIR)/scripts/json_add_image_info.py $$@
 
 endef
@@ -857,8 +846,6 @@ define Device/Build/artifact
 	VERSION_NUMBER="$(VERSION_NUMBER)" \
 	VERSION_CODE="$(VERSION_CODE)" \
 	SUPPORTED_DEVICES="$(SUPPORTED_DEVICES)" \
-	KERNEL_SIZE="$(KERNEL_SIZE)" \
-	IMAGE_SIZE="$(IMAGE_SIZE)" \
 	$(TOPDIR)/scripts/json_add_image_info.py $$@
 
 endef
@@ -871,13 +858,8 @@ define Device/Build
     $$(call Device/Build/compile,$$(compile),$(1))))
 
   $$(eval $$(foreach image,$$(IMAGES), \
-    $$(foreach fs,$$(filter $$(filter-out targz,$(TARGET_FILESYSTEMS)), \
-        $$(filter $$(or $$(FILESYSTEMS/$$(image)),$$(FILESYSTEMS)),$$(FILESYSTEMS))), \
+    $$(foreach fs,$$(filter $(TARGET_FILESYSTEMS),$$(FILESYSTEMS)), \
       $$(call Device/Build/image,$$(fs),$$(image),$(1)))))
-
-  $(if $(CONFIG_TARGET_ROOTFS_TARGZ), \
-    IMAGE/rootfs.tar.gz := append-rootfs
-    $$(eval $$(call Device/Build/image,targz,rootfs.tar.gz,$(1))))
 
   $$(eval $$(foreach artifact,$$(ARTIFACTS), \
     $$(call Device/Build/artifact,$$(artifact),$(1))))
@@ -940,17 +922,8 @@ define Device
   $(call Device/Default,$(1))
   $(call Device/$(1),$(1))
   $(call Device/Check,$(1))
-  $(if $(DUMP),$(call Device/Dump,$(1)),$(call Device/BuildSelected,$(1)))
+  $(call Device/$(if $(DUMP),Dump,Build),$(1))
 
-endef
-
-# The rules of a device that is not selected can not be reached, and a
-# target defines more than 100 devices, so do not define them. The whole
-# image Makefile is parsed twice per build.
-define Device/BuildSelected
-  ifneq ($(CONFIG_IB)$$(_PROFILE_SET),)
-$(call Device/Build,$(1))
-  endif
 endef
 
 define BuildImage

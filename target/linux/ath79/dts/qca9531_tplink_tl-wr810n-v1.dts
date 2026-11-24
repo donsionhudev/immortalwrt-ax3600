@@ -19,6 +19,8 @@
 
 &usb0 {
 	status = "okay";
+
+	vbus-supply = <&reg_usb_vbus>;
 };
 
 &usb_phy {

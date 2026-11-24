@@ -24,6 +24,7 @@
 
 	gpio-export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		modem-enable {
 			gpio-export,name = "modem-enable";

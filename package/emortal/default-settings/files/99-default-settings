@@ -22,7 +22,8 @@ ln -sf "/sbin/ip" "/usr/bin/ip"
 case "$DISTRIB_TARGET" in
 "bcm4908"/*|\
 "bcm53xx"/*|\
-"ramips/mt7621")
+"ramips/mt7621"|\
+"x86"/*)
 	if ! uci -q get system.@imm_init[0].packet_steering > "/dev/null"; then
 	uci -q batch <<-EOF
 		set network.globals="globals"

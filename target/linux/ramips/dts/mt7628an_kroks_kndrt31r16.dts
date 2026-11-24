@@ -22,6 +22,7 @@
 
 	gpio_export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		usb1power {
 			gpio-export,name = "usb1power";

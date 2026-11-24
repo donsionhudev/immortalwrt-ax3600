@@ -3,7 +3,7 @@ define KernelPackage/ata-dwc
   KCONFIG:=CONFIG_SATA_DWC
   FILES:=$(LINUX_DIR)/drivers/ata/sata_dwc_460ex.ko
   AUTOLOAD:=$(call AutoLoad,40,sata_dwc_460ex,1)
-  $(call AddDepends/ata,@TARGET_apm821xx)
+  $(call AddDepends/ata)
 endef
 
 define KernelPackage/ata-dwc/description

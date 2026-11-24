@@ -1,11 +1,11 @@
 --- a/tools/fiptool/Makefile
 +++ b/tools/fiptool/Makefile
-@@ -74,7 +74,7 @@ all: --openssl ${PROJECT}
+@@ -38,7 +38,7 @@
  
  ${PROJECT}: ${OBJECTS} Makefile
- 	$(s)echo "  HOSTLD  $@"
--	$(q)$(host-cc) ${OBJECTS} -o $@ $(LDOPTS)
-+	$(q)$(host-cc) ${OBJECTS} -o $@ $(LDOPTS) $(LDFLAGS)
- 	$(s)echo
- 	$(s)echo "Built $@ successfully"
- 	$(s)echo
+ 	@echo "  HOSTLD  $@"
+-	${Q}${HOSTCC} ${OBJECTS} -o $@ ${LDLIBS}
++	${Q}${HOSTCC} ${OBJECTS} -o $@ ${LDLIBS} $(LDFLAGS)
+ 	@${ECHO_BLANK_LINE}
+ 	@echo "Built $@ successfully"
+ 	@${ECHO_BLANK_LINE}

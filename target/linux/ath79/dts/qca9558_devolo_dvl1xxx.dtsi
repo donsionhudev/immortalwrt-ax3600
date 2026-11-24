@@ -137,10 +137,6 @@
 	};
 };
 
-&wdt {
-	status = "disabled";
-};
-
 &wmac {
 	status = "okay";
 

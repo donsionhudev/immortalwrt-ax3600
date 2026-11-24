@@ -87,6 +87,7 @@
 
 	gpio-export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		gpio_pa_dcdc {
 			gpio-export,name = "om5pac:pa_dcdc";
@@ -249,10 +250,6 @@
 	qca955x-sgmii-fixup;
 
 	phy-handle = <&phy1>;
-};
-
-&wdt {
-	status = "disabled";
 };
 
 &wmac {

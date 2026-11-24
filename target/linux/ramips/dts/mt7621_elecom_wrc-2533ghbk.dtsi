@@ -12,7 +12,6 @@
 		led-failsafe = &led_power;
 		led-running = &led_power;
 		led-upgrade = &led_power;
-		label-mac-device = &gmac1;
 	};
 
 	leds {
@@ -110,12 +109,6 @@
 						reg = <0x0 0x4da8>;
 					};
 
-					macaddr_factory_4: mac-address@4 {
-						compatible = "mac-base";
-						reg = <0x4 0x6>;
-						#nvmem-cell-cells = <1>;
-					};
-
 					eeprom_factory_8000: eeprom@8000 {
 						reg = <0x8000 0x4da8>;
 					};
@@ -125,18 +118,10 @@
 	};
 };
 
-&gmac0 {
-	nvmem-cells = <&eeprom_factory_0 (-1)>;
-	nvmem-cell-names = "mac-address";
-};
-
 &gmac1 {
 	status = "okay";
 	label = "wan";
 	phy-handle = <&ethphy0>;
-
-	nvmem-cells = <&eeprom_factory_0 (-2)>;
-	nvmem-cell-names = "mac-address";
 };
 
 &ethphy0 {
@@ -196,10 +181,6 @@
 		nvmem-cell-names = "eeprom";
 		ieee80211-freq-limit = <5000000 6000000>;
 	};
-};
-
-&usb_phy {
-	status = "disabled";
 };
 
 &xhci {

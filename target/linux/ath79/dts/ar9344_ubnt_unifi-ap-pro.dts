@@ -91,7 +91,6 @@
 				partition@300000 {
 					label = "rootfs";
 					reg = <0x300000 0xc60000>;
-					linux,rootfs;
 				};
 			};
 
@@ -149,9 +148,8 @@
 &mdio0 {
 	status = "okay";
 
-	ethernet-switch@10 {
-		compatible = "qca,ar8327";
-		reg = <0x10>;
+	phy0: ethernet-phy@0 {
+		reg = <0>;
 
 		qca,ar8327-initvals = <
 			0x4 0x7600000 /* PORT0 PAD MODE CTRL */
@@ -170,9 +168,5 @@
 	nvmem-cell-names = "mac-address";
 
 	phy-mode = "rgmii";
-
-	fixed-link {
-		speed = <1000>;
-		full-duplex;
-	};
+	phy-handle = <&phy0>;
 };

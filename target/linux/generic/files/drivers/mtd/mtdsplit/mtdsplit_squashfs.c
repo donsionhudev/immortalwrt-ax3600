@@ -62,4 +62,11 @@ static struct mtd_part_parser mtdsplit_squashfs_parser = {
 	.type = MTD_PARSER_TYPE_ROOTFS,
 };
 
-module_mtd_part_parser(mtdsplit_squashfs_parser);
+static int __init mtdsplit_squashfs_init(void)
+{
+	register_mtd_parser(&mtdsplit_squashfs_parser);
+
+	return 0;
+}
+
+subsys_initcall(mtdsplit_squashfs_init);

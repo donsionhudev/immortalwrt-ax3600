@@ -124,8 +124,8 @@
 
 	rtl8367 {
 		compatible = "realtek,rtl8367";
-		sda-gpios = <&gpio0 5 GPIO_ACTIVE_HIGH>;
-		sck-gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+		gpio-sda = <&gpio0 5 GPIO_ACTIVE_HIGH>;
+		gpio-sck = <&gpio0 4 GPIO_ACTIVE_HIGH>;
 		realtek,extif = <9 1 0 1 1 1 1 1 1 2>;
 	};
 
@@ -137,6 +137,7 @@
 	/*
 	gpio_export {
 		compatible = "gpio-export";
+		#size-cells = <0>;
 
 		usb {
 			gpio-export,name="usb";
@@ -184,7 +185,7 @@
 &pci1 {
 	status = "okay";
 
-	wifi@1,0 {
+	wifi@0,0 {
 		compatible = "pci0,0";
 		reg = <0x10000 0 0 0 0>;
 		ralink,5ghz = <0>;

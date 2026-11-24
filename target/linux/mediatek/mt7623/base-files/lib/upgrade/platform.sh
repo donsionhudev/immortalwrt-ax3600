@@ -1,5 +1,5 @@
 REQUIRE_IMAGE_METADATA=1
-RAMFS_COPY_BIN='fitblk fit_check_sign'
+RAMFS_COPY_BIN='fitblk'
 
 # Legacy full system upgrade including preloader for MediaTek SoCs on eMMC or SD
 legacy_mtk_mmc_full_upgrade() {
@@ -123,8 +123,10 @@ platform_check_image() {
 	case "$(board_name)" in
 	bananapi,bpi-r2|\
 	unielec,u7623-02)
-		fit_check_image "$1"
-		return $?
+		[ "$magic" != "d00dfeed" ] && {
+			echo "Invalid image type."
+			return 1
+		}
 		;;
 	unielec,u7623-02-emmc-512m)
 		# Can always upgrade to the new-style full image

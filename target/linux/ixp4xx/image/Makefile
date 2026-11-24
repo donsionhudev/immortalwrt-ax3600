@@ -16,8 +16,7 @@ define Build/freecom-image
 	mkdir -p $@.tmptar
 	# Add kernel
 	cp $@ $@.tmptar/zImage
-	cd $@.tmptar && $(TAR) -c -j -f $@.new --sort=name --numeric-owner --owner=0 --group=0 --mode=go-w \
-		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") *
+	cd $@.tmptar && tar -c -j -f $@.new --numeric-owner --owner=0 --group=0 *
 	rm -rf $@.tmptar
 	encode_crc $@.new $@
 	rm -f $@.new
@@ -45,39 +44,7 @@ define Device/Default
 	KERNEL_NAME := zImage
 	KERNEL := kernel-bin | append-dtb
 	BLOCKSIZE := 128k
-	FILESYSTEMS/rootfs.bin := squashfs
-	# The ext4 root file system goes on an external hard drive
-	FILESYSTEMS/rootfs.bin.gz := ext4
-	IMAGE/rootfs.bin.gz := append-rootfs | pad-rootfs | pad-to 128k | gzip
 endef
-
-define Device/actiontec_mi424wr_ac
-	DEVICE_VENDOR := Actiontec
-	DEVICE_MODEL := MI424WR rev A/C
-	# Only 8 MB of Flash so not building by default
-	DEFAULT := n
-	DEVICE_PACKAGES := ixp4xx-microcode-ethernet kmod-dsa-ks8995
-	DEVICE_DTS := intel-ixp42x-actiontec-mi424wr-ac
-	KERNEL := kernel-bin | append-dtb
-	IMAGES := kernel.bin rootfs.bin rootfs.bin.gz
-	IMAGE/kernel.bin := append-kernel
-	IMAGE/rootfs.bin := append-rootfs | pad-rootfs | pad-to 128k
-endef
-TARGET_DEVICES += actiontec_mi424wr_ac
-
-define Device/actiontec_mi424wr_d
-	DEVICE_VENDOR := Actiontec
-	DEVICE_MODEL := MI424WR rev D
-	# Only 8 MB of Flash so not building by default
-	DEFAULT := n
-	DEVICE_PACKAGES := ixp4xx-microcode-ethernet kmod-dsa-ks8995
-	DEVICE_DTS := intel-ixp42x-actiontec-mi424wr-d
-	KERNEL := kernel-bin | append-dtb
-	IMAGES := kernel.bin rootfs.bin rootfs.bin.gz
-	IMAGE/kernel.bin := append-kernel
-	IMAGE/rootfs.bin := append-rootfs | pad-rootfs | pad-to 128k
-endef
-TARGET_DEVICES += actiontec_mi424wr_d
 
 define Device/dlink_dsm_g600_a
 	DEVICE_VENDOR := D-Link
@@ -85,7 +52,7 @@ define Device/dlink_dsm_g600_a
 	DEVICE_PACKAGES := ixp4xx-microcode-ethernet kmod-rtc-pcf8563 kmod-via-velocity kmod-ata-artop kmod-ath5k wpad-openssl
 	DEVICE_DTS := intel-ixp42x-dlink-dsm-g600
 	KERNEL := kernel-bin | append-dtb
-	IMAGES := kernel.bin rootfs.bin rootfs.bin.gz
+	IMAGES := kernel.bin rootfs.bin
 	IMAGE/kernel.bin := append-kernel
 	IMAGE/rootfs.bin := append-rootfs | pad-rootfs | pad-to 128k
 endef
@@ -111,7 +78,7 @@ define Device/gateworks_avila
 	DEVICE_PACKAGES := ixp4xx-microcode-ethernet kmod-rtc-ds1672 kmod-eeprom-at24 kmod-hwmon-ad7418
 	DEVICE_DTS := intel-ixp42x-gateworks-gw2348
 	KERNEL := kernel-bin | append-dtb
-	IMAGES := kernel.bin rootfs.bin rootfs.bin.gz
+	IMAGES := kernel.bin rootfs.bin
 	IMAGE/kernel.bin := append-kernel
 	IMAGE/rootfs.bin := append-rootfs | pad-rootfs | pad-to 128k
 endef
@@ -123,7 +90,7 @@ define Device/gateworks_cambria
 	DEVICE_PACKAGES := ixp4xx-microcode-ethernet kmod-rtc-ds1672 kmod-eeprom-at24 kmod-hwmon-ad7418
 	DEVICE_DTS := intel-ixp43x-gateworks-gw2358
 	KERNEL := kernel-bin | append-dtb
-	IMAGES := kernel.bin rootfs.bin rootfs.bin.gz
+	IMAGES := kernel.bin rootfs.bin
 	IMAGE/kernel.bin := append-kernel
 	IMAGE/rootfs.bin := append-rootfs | pad-rootfs | pad-to 128k
 endef
@@ -157,22 +124,6 @@ define Device/linksys_nslu2
 endef
 TARGET_DEVICES += linksys_nslu2
 
-define Device/netgear_wg302v1
-	DEVICE_VENDOR := Netgear
-	DEVICE_MODEL := WG302 v1
-	DEVICE_PACKAGES := ixp4xx-microcode-ethernet kmod-phy-amd kmod-ath5k \
-		wpad-basic-openssl kmod-input-gpio-keys-polled
-	# Only 32 MB of RAM and small flash so not building by default
-	DEFAULT := n
-	DEVICE_DTS := intel-ixp42x-netgear-wg302v1
-	KERNEL := kernel-bin | append-dtb
-	IMAGES := kernel.bin rootfs.bin rootfs.bin.gz
-	IMAGE/kernel.bin := append-kernel
-	IMAGE/rootfs.bin := append-rootfs | pad-rootfs | pad-to 128k
-	IMAGE/sysupgrade.bin := append-rootfs | pad-rootfs | pad-to 128k | append-metadata
-endef
-TARGET_DEVICES += netgear_wg302v1
-
 define Device/usrobotics_usr8200
 	DEVICE_VENDOR := USRobotics
 	DEVICE_MODEL := USR8200
@@ -180,7 +131,7 @@ define Device/usrobotics_usr8200
 	DEVICE_PACKAGES := ixp4xx-microcode-ethernet kmod-rtc-r7301 kmod-firewire kmod-firewire-ohci kmod-dsa-mv88e6060
 	DEVICE_DTS := intel-ixp42x-usrobotics-usr8200
 	KERNEL := kernel-bin | append-dtb
-	IMAGES := kernel.bin rootfs.bin rootfs.bin.gz
+	IMAGES := kernel.bin rootfs.bin
 	IMAGE/kernel.bin := append-kernel
 	IMAGE/rootfs.bin := append-rootfs | pad-rootfs | pad-to 128k
 endef

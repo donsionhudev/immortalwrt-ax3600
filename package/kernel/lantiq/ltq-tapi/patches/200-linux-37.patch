@@ -1,69 +1,100 @@
 --- a/src/drv_tapi_linux.c
 +++ b/src/drv_tapi_linux.c
-@@ -47,7 +47,6 @@
+@@ -47,7 +47,9 @@
  #include <linux/errno.h>
  #include <asm/uaccess.h>               /* copy_from_user(), ... */
  #include <asm/byteorder.h>
--#include <linux/smp_lock.h>         /* lock_kernel() */
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,33))
+ #include <linux/smp_lock.h>         /* lock_kernel() */
++#endif
  #include <asm/io.h>
  
  #ifdef LINUX_2_6
-@@ -63,7 +62,6 @@
+@@ -69,7 +71,9 @@
  #else
     #include <linux/tqueue.h>
     #include <linux/sched.h>
--   #include <linux/smp_lock.h>         /* lock_kernel() */
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,33))
+    #include <linux/smp_lock.h>         /* lock_kernel() */
++#endif
  #endif /* LINUX_2_6 */
  
  #include "drv_tapi.h"
-@@ -131,7 +129,7 @@ static ssize_t ifx_tapi_write(struct fil
+@@ -137,8 +141,13 @@ static ssize_t ifx_tapi_write(struct fil
                                size_t count, loff_t * ppos);
  static ssize_t ifx_tapi_read(struct file * filp, char *buf,
                                size_t length, loff_t * ppos);
--static int ifx_tapi_ioctl(struct inode *inode, struct file *filp,
-+static long ifx_tapi_ioctl(struct file *filp,
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36))
+ static int ifx_tapi_ioctl(struct inode *inode, struct file *filp,
                                unsigned int nCmd, unsigned long nArgument);
++#else
++static long ifx_tapi_ioctl(struct file *filp,
++                              unsigned int nCmd, unsigned long nArgument);
++#endif
  static unsigned int ifx_tapi_poll (struct file *filp, poll_table *table);
  
-@@ -216,7 +214,7 @@ IFX_return_t TAPI_OS_RegisterLLDrv (IFX_
+ #ifdef CONFIG_PROC_FS
+@@ -222,7 +231,11 @@ IFX_return_t TAPI_OS_RegisterLLDrv (IFX_
     IFX_char_t   *pRegDrvName = IFX_NULL;
     IFX_int32_t ret = 0;
  
--   if (tapi_fops.ioctl == IFX_NULL)
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36))
+    if (tapi_fops.ioctl == IFX_NULL)
++#else
 +   if (tapi_fops.unlocked_ioctl == IFX_NULL)
++#endif
     {
  #ifdef MODULE
        tapi_fops.owner =    THIS_MODULE;
-@@ -224,7 +222,7 @@ IFX_return_t TAPI_OS_RegisterLLDrv (IFX_
+@@ -230,7 +243,11 @@ IFX_return_t TAPI_OS_RegisterLLDrv (IFX_
        tapi_fops.read =     ifx_tapi_read;
        tapi_fops.write =    ifx_tapi_write;
        tapi_fops.poll =     ifx_tapi_poll;
--      tapi_fops.ioctl =    ifx_tapi_ioctl;
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36))
+       tapi_fops.ioctl =    ifx_tapi_ioctl;
++#else
 +      tapi_fops.unlocked_ioctl =    ifx_tapi_ioctl;
++#endif
        tapi_fops.open =     ifx_tapi_open;
        tapi_fops.release =  ifx_tapi_release;
     }
-@@ -879,7 +877,7 @@ static IFX_uint32_t ifx_tapi_poll (struc
+@@ -885,8 +902,13 @@ static IFX_uint32_t ifx_tapi_poll (struc
     - 0 and positive values - success
     - negative value - ioctl failed
  */
--static int ifx_tapi_ioctl(struct inode *inode, struct file *filp,
-+static long ifx_tapi_ioctl(struct file *filp,
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36))
+ static int ifx_tapi_ioctl(struct inode *inode, struct file *filp,
                            unsigned int nCmd, unsigned long nArg)
++#else
++static long ifx_tapi_ioctl(struct file *filp,
++                          unsigned int nCmd, unsigned long nArg)
++#endif
  {
     TAPI_FD_PRIV_DATA_t *pTapiPriv;
-@@ -3719,11 +3717,9 @@ IFX_void_t TAPI_OS_ThreadKill(IFXOS_Thre
+    IFX_TAPI_ioctlCtx_t  ctx;
+@@ -3725,7 +3747,9 @@ IFX_void_t TAPI_OS_ThreadKill(IFXOS_Thre
              kernel lock (lock_kernel()). The lock must be
              grabbed before changing the terminate
              flag and released after the down() call. */
 -         lock_kernel();
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,33)
++	 lock_kernel();
++#endif
           mb();
-          kill_pid(get_task_pid(pThrCntrl->tid, PIDTYPE_PID), SIGKILL, 1);
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,28)
+          kill_proc(pThrCntrl->tid, SIGKILL, 1);
+@@ -3733,8 +3757,10 @@ IFX_void_t TAPI_OS_ThreadKill(IFXOS_Thre
+          kill_pid(find_vpid(pThrCntrl->tid), SIGKILL, 1);
+ #endif
           /* release the big kernel lock */
--         unlock_kernel();
-          wait_for_completion (&pThrCntrl->thrCompletion);
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,33)
+          unlock_kernel();
+-         wait_for_completion (&pThrCntrl->thrCompletion);
++#endif
++	 wait_for_completion (&pThrCntrl->thrCompletion);
  
  #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,23)
+          /* Now we are sure the thread is in zombie state.
 --- a/src/lib/lib_fifo/lib_fifo.c
 +++ b/src/lib/lib_fifo/lib_fifo.c
 @@ -41,7 +41,7 @@

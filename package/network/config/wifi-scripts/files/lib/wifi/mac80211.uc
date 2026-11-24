@@ -2,32 +2,12 @@
 import { readfile } from "fs";
 import * as uci from 'uci';
 
-const bands_order = [ "60G", "6G", "5G", "2G" ];
+const bands_order = [ "6G", "5G", "2G" ];
 const htmode_order = [ "EHT", "HE", "VHT", "HT" ];
 
 let board = json(readfile("/etc/board.json"));
 if (!board.wlan)
 	exit(0);
-
-function provision_country_get() {
-	let provision;
-
-	try {
-		provision = import("provision");
-	} catch (e) {
-		return;
-	}
-
-	let ctx = provision.open();
-	if (!ctx)
-		return;
-
-	ctx.init();
-
-	return ctx.get("wireless.country");
-}
-
-let provision_country = provision_country_get();
 
 let idx = 0;
 let commit;
@@ -98,24 +78,14 @@ for (let phy_name, phy in board.wlan) {
 
 		band_name = lc(band_name);
 
-		let country, encryption, defaults, num_global_macaddr;
-		if (band_name == '6g') {
-			country = '00';
-			encryption = 'owe';
-		} else {
-			encryption = 'none';
-		}
+		let country, defaults, num_global_macaddr;
 		if (board.wlan.defaults) {
 			defaults = board.wlan.defaults.ssids?.[band_name]?.ssid ? board.wlan.defaults.ssids?.[band_name] : board.wlan.defaults.ssids?.all;
 			country = board.wlan.defaults.country;
+			if (!country && band_name != '2g')
+				defaults = null;
 			num_global_macaddr = board.wlan.defaults.ssids?.[band_name]?.mac_count;
 		}
-
-		if (provision_country)
-			country = provision_country;
-
-		if (!country && band_name != '2g')
-			defaults = null;
 
 		if (length(info.radios) > 0)
 			id += `\nset ${s}.radio='${radio.index}'`;
@@ -126,17 +96,17 @@ set ${s}.${id}
 set ${s}.band='${band_name}'
 set ${s}.channel='${channel}'
 set ${s}.htmode='${htmode}'
-set ${s}.country='${country || 'CN'}'
+set ${s}.country='${country || "CN"}'
 set ${s}.num_global_macaddr='${num_global_macaddr || ''}'
+set ${s}.disabled='0'
 
 set ${si}=wifi-iface
 set ${si}.device='${name}'
 set ${si}.network='lan'
 set ${si}.mode='ap'
-set ${si}.ssid='${defaults?.ssid || 'OWRT'}'
-set ${si}.encryption='${defaults?.encryption || 'psk2+ccmp'}'
-set ${si}.key='${defaults?.key || '12345678'}'
-set ${si}.disabled='0'
+set ${si}.ssid='${defaults?.ssid || "ImmortalWrt"}'
+set ${si}.encryption='${defaults?.encryption || "none"}'
+set ${si}.key='${defaults?.key || ""}'
 
 `);
 		config[name] = {};

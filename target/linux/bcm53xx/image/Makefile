@@ -122,8 +122,7 @@ define Build/dwl8610ap-image
 	cp $@ $@.tmptar/rootfs.bin
 	# Hash the rootfs.bin
 	cat $@.tmptar/rootfs.bin | md5sum > $@.tmptar/rootfs.md5
-	cd $@.tmptar && $(TAR) -c -f $@.new --sort=name --numeric-owner --owner=0 --group=0 --mode=go-w \
-		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") *
+	cd $@.tmptar && tar -c -f $@.new *
 	rm -rf $@.tmptar
 	mv $@.new $@
 endef
@@ -176,22 +175,6 @@ define Device/asus_rt-ac3100
   ASUS_PRODUCTID := RT-AC3100
 endef
 TARGET_DEVICES += asus_rt-ac3100
-
-define Device/asus_rt-ac3200
-  $(call Device/asus)
-  DEVICE_MODEL := RT-AC3200
-  DEVICE_PACKAGES := $(BRCMFMAC_43602A1) $(USB3_PACKAGES)
-  ASUS_PRODUCTID := RT-AC3200
-endef
-TARGET_DEVICES += asus_rt-ac3200
-
-define Device/asus_rt-ac5300
-  $(call Device/asus)
-  DEVICE_MODEL := RT-AC5300
-  DEVICE_PACKAGES := $(BRCMFMAC_4366C0) $(USB3_PACKAGES)
-  ASUS_PRODUCTID := RT-AC5300
-endef
-TARGET_DEVICES += asus_rt-ac5300
 
 define Device/asus_rt-ac56u
   $(call Device/asus)
@@ -344,7 +327,7 @@ define Device/linksys_ea9200
   DEVICE_VENDOR := Linksys
   DEVICE_MODEL := EA9200
   DEVICE_VARIANT := v1
-  DEVICE_PACKAGES := $(BRCMFMAC_43602A1) $(USB3_PACKAGES) kmod-ledtrig-network
+  DEVICE_PACKAGES := $(BRCMFMAC_43602A1) $(USB3_PACKAGES)
 endef
 TARGET_DEVICES += linksys_ea9200
 
@@ -406,9 +389,9 @@ define Device/meraki_mr26
 # resize the initramfs to fit the size of the existing part.safe.
   KERNEL_LOADADDR := 0x00008000
   KERNEL_INITRAMFS_SUFFIX := .bin
-  KERNEL_INITRAMFS := kernel-bin | append-dtb | libdeflate-gzip | uImage gzip | pad-to 9310208
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | gzip | uImage gzip | pad-to 9310208
 # LZMA is not supported by the uboot
-  KERNEL := kernel-bin | append-dtb | libdeflate-gzip | uImage gzip
+  KERNEL := kernel-bin | append-dtb | gzip | uImage gzip
   IMAGES += sysupgrade.bin
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
@@ -417,7 +400,7 @@ TARGET_DEVICES += meraki_mr26
 define Device/meraki_mr32
   DEVICE_VENDOR := Meraki
   DEVICE_MODEL := MR32
-  DEVICE_PACKAGES := $(B43) kmod-leds-pwm kmod-hwmon-ina2xx kmod-hci-uart
+  DEVICE_PACKAGES := $(B43) kmod-leds-pwm kmod-hwmon-ina2xx kmod-bluetooth
   DEVICE_DTS := bcm53016-meraki-mr32
 # Meraki FW r23 tries to resize the part.safe partition before it will
 # flash the image. This is a bit of a problem, since resizing will fail
@@ -445,8 +428,8 @@ define Device/meraki_mx6x
   DEVICE_PACKAGES := -oseama kmod-leds-pwm kmod-usb-ehci \
 	kmod-usb-ohci kmod-usb2
   DEVICE_VENDOR := Cisco Meraki
-  KERNEL = kernel-bin | libdeflate-gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
-  KERNEL_INITRAMFS := kernel-bin | libdeflate-gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+  KERNEL = kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+  KERNEL_INITRAMFS := kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
   KERNEL_INITRAMFS_SUFFIX := .bin
   IMAGES := sysupgrade.bin
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
@@ -460,18 +443,17 @@ define Device/meraki_mx64
 endef
 TARGET_DEVICES += meraki_mx64
 
-define Device/meraki_mx64-a0
+define Device/meraki_mx64_a0
   $(call Device/meraki_mx64)
   DEVICE_VARIANT := A0
   DEVICE_DTS_CONFIG := config@2
   DEVICE_DTS := bcm958625-meraki-mx64-a0
 endef
-TARGET_DEVICES += meraki_mx64-a0
+TARGET_DEVICES += meraki_mx64_a0
 
 define Device/meraki_mx65
   $(call Device/meraki_mx6x)
   DEVICE_MODEL := MX65
-  DEVICE_PACKAGES += kmod-dsa-qca8k
   DEVICE_DTS_CONFIG := config@3
   DEVICE_DTS := bcm958625-meraki-mx65
 endef
@@ -501,15 +483,6 @@ define Device/netgear_r6300-v2
   NETGEAR_BOARD_ID := U12H240T00_NETGEAR
 endef
 TARGET_DEVICES += netgear_r6300-v2
-
-define Device/netgear_r6400-v1
-  DEVICE_MODEL := R6400
-  DEVICE_VARIANT := v1
-  DEVICE_PACKAGES := $(B43) $(USB3_PACKAGES)
-  $(Device/netgear)
-  NETGEAR_BOARD_ID := U12H332T00_NETGEAR
-endef
-TARGET_DEVICES += netgear_r6400-v1
 
 define Device/netgear_r7000
   DEVICE_MODEL := R7000

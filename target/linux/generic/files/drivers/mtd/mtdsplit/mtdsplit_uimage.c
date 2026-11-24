@@ -139,7 +139,7 @@ static int __mtdsplit_parse_uimage(struct mtd_info *master,
 	enum mtdsplit_part_type type;
 
 	nr_parts = 2;
-	parts = kcalloc(nr_parts, sizeof(*parts), GFP_KERNEL);
+	parts = kzalloc(nr_parts * sizeof(*parts), GFP_KERNEL);
 	if (!parts)
 		return -ENOMEM;
 
@@ -186,8 +186,8 @@ static int __mtdsplit_parse_uimage(struct mtd_info *master,
 	}
 
 	if (uimage_size == 0) {
-		pr_info("no uImage found in \"%s\"\n", master->name);
-		ret = 0;
+		pr_debug("no uImage found in \"%s\"\n", master->name);
+		ret = -ENODEV;
 		goto err_free_buf;
 	}
 
@@ -217,7 +217,6 @@ static int __mtdsplit_parse_uimage(struct mtd_info *master,
 		if (ret) {
 			pr_debug("no rootfs before uImage in \"%s\"\n",
 				 master->name);
-			ret = -ENOENT;
 			goto err_free_buf;
 		}
 
@@ -227,7 +226,7 @@ static int __mtdsplit_parse_uimage(struct mtd_info *master,
 
 	if (rootfs_size == 0) {
 		pr_debug("no rootfs found in \"%s\"\n", master->name);
-		ret = -ENOENT;
+		ret = -ENODEV;
 		goto err_free_buf;
 	}
 
@@ -269,4 +268,15 @@ static struct mtd_part_parser uimage_generic_parser = {
 	.type = MTD_PARSER_TYPE_FIRMWARE,
 };
 
-module_mtd_part_parser(uimage_generic_parser);
+/**************************************************
+ * Init
+ **************************************************/
+
+static int __init mtdsplit_uimage_init(void)
+{
+	register_mtd_parser(&uimage_generic_parser);
+
+	return 0;
+}
+
+module_init(mtdsplit_uimage_init);

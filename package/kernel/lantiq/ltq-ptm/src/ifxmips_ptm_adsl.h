@@ -27,6 +27,7 @@
 
 
 
+#include <linux/version.h>
 #include <linux/netdevice.h>
 #include <lantiq_ptm.h>
 #include "ifxmips_ptm_common.h"

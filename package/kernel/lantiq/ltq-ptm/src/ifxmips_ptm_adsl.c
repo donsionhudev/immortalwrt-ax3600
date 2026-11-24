@@ -33,6 +33,7 @@
 /*
  *  Common Head File
  */
+#include <linux/version.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/types.h>
@@ -43,9 +44,8 @@
 #include <linux/etherdevice.h>
 #include <linux/interrupt.h>
 #include <linux/netdevice.h>
-#include <linux/mod_devicetable.h>
 #include <linux/platform_device.h>
-#include <linux/of_net.h>
+#include <linux/of_device.h>
 #include <linux/uaccess.h>
 #include <linux/capability.h>
 #include <asm/io.h>
@@ -121,7 +121,7 @@ MODULE_PARM_DESC(eth_efmtc_crc_cfg, "Configuration for PTM TX/RX ethernet/efm-tc
 /*
  *  Network Operations
  */
-static int ptm_setup(struct device_node *np, struct net_device *, int);
+static void ptm_setup(struct net_device *, int);
 static struct net_device_stats *ptm_get_stats(struct net_device *);
 static int ptm_open(struct net_device *);
 static int ptm_stop(struct net_device *);
@@ -129,7 +129,11 @@ static int ptm_stop(struct net_device *);
   static int ptm_napi_poll(struct napi_struct *, int);
 static int ptm_hard_start_xmit(struct sk_buff *, struct net_device *);
 static int ptm_ioctl(struct net_device *, struct ifreq *, void __user *, int);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,6,0)
+static void ptm_tx_timeout(struct net_device *);
+#else
 static void ptm_tx_timeout(struct net_device *, unsigned int txqueue);
+#endif
 
 /*
  *  DSL Data LED
@@ -273,10 +277,9 @@ static int g_showtime = 0;
  * ####################################
  */
 
-static int ptm_setup(struct device_node *np, struct net_device *dev, int ndev)
+static void ptm_setup(struct net_device *dev, int ndev)
 {
     u8 addr[ETH_ALEN];
-    int err;
 
 #if defined(CONFIG_IFXMIPS_DSL_CPE_MEI) || defined(CONFIG_IFXMIPS_DSL_CPE_MEI_MODULE)
     netif_carrier_off(dev);
@@ -286,23 +289,20 @@ static int ptm_setup(struct device_node *np, struct net_device *dev, int ndev)
     dev->netdev_ops      = &g_ptm_netdev_ops;
     /* Allow up to 1508 bytes, for RFC4638 */
     dev->max_mtu         = ETH_DATA_LEN + 8;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5,19,0))
+    netif_napi_add(dev, &g_ptm_priv_data.itf[ndev].napi, ptm_napi_poll, 25);
+#else
     netif_napi_add_weight(dev, &g_ptm_priv_data.itf[ndev].napi, ptm_napi_poll, 25);
+#endif
     dev->watchdog_timeo  = ETH_WATCHDOG_TIMEOUT;
 
-    err = of_get_ethdev_address(np, dev);
-    if (err == -EPROBE_DEFER)
-	    return err;
-    if (err) {
-        addr[0] = 0x00;
-        addr[1] = 0x20;
-        addr[2] = 0xda;
-        addr[3] = 0x86;
-        addr[4] = 0x23;
-        addr[5] = 0x75 + ndev;
-        eth_hw_addr_set(dev, addr);
-    }
-
-    return 0;
+    addr[0] = 0x00;
+    addr[1] = 0x20;
+    addr[2] = 0xda;
+    addr[3] = 0x86;
+    addr[4] = 0x23;
+    addr[5] = 0x75 + ndev;
+    eth_hw_addr_set(dev, addr);
 }
 
 static struct net_device_stats *ptm_get_stats(struct net_device *dev)
@@ -490,7 +490,7 @@ static int ptm_ioctl(struct net_device *dev, struct ifreq *ifr, void __user *dat
     case IFX_PTM_MIB_FRAME_GET:
         {
             PTM_FRAME_MIB_T tmp = {0};
-
+    
             tmp.RxCorrect   = WAN_MIB_TABLE[ndev].wrx_correct_pdu;
             tmp.TC_CrcError = WAN_MIB_TABLE[ndev].wrx_tccrc_err_pdu;
             tmp.RxDropped   = WAN_MIB_TABLE[ndev].wrx_nodesc_drop_pdu + WAN_MIB_TABLE[ndev].wrx_len_violation_drop_pdu;
@@ -553,7 +553,11 @@ static int ptm_ioctl(struct net_device *dev, struct ifreq *ifr, void __user *dat
     return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,6,0)
+static void ptm_tx_timeout(struct net_device *dev)
+#else
 static void ptm_tx_timeout(struct net_device *dev, unsigned int txqueue)
+#endif
 {
     int ndev;
 
@@ -1347,9 +1351,14 @@ static INLINE void clear_priv_data(void)
         }
     }
 
-    kfree(g_ptm_priv_data.rx_desc_base);
-    kfree(g_ptm_priv_data.tx_desc_base);
-    kfree(g_ptm_priv_data.tx_skb_base);
+    if ( g_ptm_priv_data.rx_desc_base != NULL )
+        kfree(g_ptm_priv_data.rx_desc_base);
+
+    if ( g_ptm_priv_data.tx_desc_base != NULL )
+        kfree(g_ptm_priv_data.tx_desc_base);
+
+    if ( g_ptm_priv_data.tx_skb_base != NULL )
+        kfree(g_ptm_priv_data.tx_skb_base);
 }
 
 static INLINE void init_tables(void)
@@ -1485,7 +1494,6 @@ static int ltq_ptm_probe(struct platform_device *pdev)
 {
     int ret;
     struct port_cell_info port_cell = {0};
-    struct device_node *np = pdev->dev.of_node;
     void *xdata_addr = NULL;
     int i;
     char ver_str[256];
@@ -1505,9 +1513,7 @@ static int ltq_ptm_probe(struct platform_device *pdev)
         g_net_dev[i] = alloc_netdev(0, g_net_dev_name[i], NET_NAME_UNKNOWN, ether_setup);
         if ( g_net_dev[i] == NULL )
             goto ALLOC_NETDEV_FAIL;
-        ret = ptm_setup(np, g_net_dev[i], i);
-        if (ret == -EPROBE_DEFER)
-            goto ALLOC_NETDEV_FAIL;
+        ptm_setup(g_net_dev[i], i);
     }
 
     for ( i = 0; i < ARRAY_SIZE(g_net_dev); i++ ) {
@@ -1591,7 +1597,7 @@ INIT_PRIV_DATA_FAIL:
  *  Output:
  *   none
  */
-static void ltq_ptm_remove(struct platform_device *pdev)
+static int ltq_ptm_remove(struct platform_device *pdev)
 {
     int i;
 
@@ -1616,10 +1622,12 @@ static void ltq_ptm_remove(struct platform_device *pdev)
     ifx_ptm_uninit_chip();
 
     clear_priv_data();
+
+    return 0;
 }
 
 static struct platform_driver ltq_ptm_driver = {
-       .probe  = ltq_ptm_probe,
+       .probe = ltq_ptm_probe,
        .remove = ltq_ptm_remove,
        .driver = {
                .name = "ptm",

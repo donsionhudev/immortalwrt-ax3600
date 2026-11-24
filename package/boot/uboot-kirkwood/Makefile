@@ -25,11 +25,6 @@ define U-Boot/dns320l
   BUILD_DEVICES:=dlink_dns320l
 endef
 
-define U-Boot/dns325
-  NAME:=D-Link DNS-325 A1
-  BUILD_DEVICES:=dlink_dns-325-a1
-endef
-
 define U-Boot/dockstar
   NAME:=Seagate DockStar
   BUILD_DEVICES:=seagate_dockstar
@@ -117,7 +112,6 @@ endef
 
 UBOOT_TARGETS := \
 	dns320l \
-	dns325 \
 	dockstar dockstar_second_stage \
 	goflexhome \
 	ib62x0 ib62x0_second_stage \
